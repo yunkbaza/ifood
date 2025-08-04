@@ -1,10 +1,8 @@
-// backend/src/controllers/order.controller.ts
-
 import { Request, Response, NextFunction } from 'express';
-import { pool } from '../lib/db'; // Importa a conexão do pool do PostgreSQL
+import { pool } from '../lib/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
-// Interface para os itens de cada pedido
+// Definições de tipos e mock...
 interface PedidoItem {
   id?: number;
   name: string;
@@ -12,8 +10,6 @@ interface PedidoItem {
   price: number;
   pedido_id?: number;
 }
-
-// Interface para estrutura de um pedido retornado do banco
 interface PedidoDB {
   id: number;
   external_id: string;
@@ -23,10 +19,8 @@ interface PedidoDB {
   created_at: Date;
   id_restaurante: number;
   id_usuario: number;
-  restaurante_nome: string;
+  restaurant_name: string;
 }
-
-// Interface usada para simular um pedido importado
 interface PedidoMock {
   externalId: string;
   customerName: string;
@@ -35,8 +29,6 @@ interface PedidoMock {
   createdAt: Date;
   items: PedidoItem[];
 }
-
-// Exemplo de pedido mockado (poderá ser substituído pela integração com a API real do iFood)
 const pedidosMock: PedidoMock[] = [
   {
     externalId: 'IF123456',
@@ -52,37 +44,27 @@ const pedidosMock: PedidoMock[] = [
 ];
 
 export const OrderController = {
-  /**
-   * Função responsável por importar pedidos mockados para o banco de dados.
-   * Cada pedido será vinculado ao restaurante e ao usuário logado.
-   */
-  create: async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  create: async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     const { restaurantId } = req.body;
     const { userId } = req;
 
-    if (!restaurantId) {
-      return res.status(400).json({ message: 'O campo "restaurantId" é obrigatório.' });
-    }
-    if (!userId) {
-      return res.status(401).json({ message: 'Usuário não autenticado.' });
+    if (!restaurantId || !userId) {
+      res.status(400).json({ message: 'Dados de requisição incompletos.' });
+      return;
     }
 
-    const client = await pool.connect(); // Obtém um cliente do pool
+    const client = await pool.connect();
     
     try {
-      await client.query('BEGIN'); // Inicia a transação
+      await client.query('BEGIN');
       for (const pedido of pedidosMock) {
-        // Inserindo o pedido principal
         const pedidoResult = await client.query(
           `INSERT INTO pedidos (external_id, customer_name, total, status, created_at, id_restaurante, id_usuario)
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING id`,
           [pedido.externalId, pedido.customerName, pedido.total, pedido.status, pedido.createdAt, restaurantId, userId]
         );
-
         const pedidoId = pedidoResult.rows[0].id;
-
-        // Inserindo os itens vinculados ao pedido
         for (const item of pedido.items) {
           await client.query(
             `INSERT INTO pedido_items (name, quantity, price, pedido_id)
@@ -91,32 +73,25 @@ export const OrderController = {
           );
         }
       }
-      await client.query('COMMIT'); // Finaliza a transação
-
+      await client.query('COMMIT');
       res.status(201).json({ message: 'Pedidos importados com sucesso!' });
     } catch (error) {
-      await client.query('ROLLBACK'); // Desfaz a transação em caso de erro
-      console.error('[ERRO AO IMPORTAR PEDIDOS]', error);
-      next(error); // Passa o erro para o middleware de tratamento de erros
+      await client.query('ROLLBACK');
+      next(error);
     } finally {
-      client.release(); // Sempre libera o cliente de volta para o pool
+      client.release();
     }
   },
 
-  /**
-   * Função que lista todos os pedidos cadastrados para o restaurante do usuário autenticado.
-   * Inclui os dados dos pedidos e seus respectivos itens.
-   */
-  getAll: async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  getAll: async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     const { userId } = req;
 
     if (!userId) {
-      return res.status(401).json({ message: 'Usuário não autenticado.' });
+      res.status(401).json({ message: 'Usuário não autenticado.' });
+      return;
     }
 
     try {
-      // Buscando todos os pedidos associados ao restaurante do usuário
-      // Assumindo que a tabela de restaurantes tem uma coluna 'owner_id' que se refere ao 'id' do usuário
       const pedidosResult = await pool.query(
         `SELECT p.*, r.name as restaurant_name
          FROM pedidos p
@@ -125,8 +100,6 @@ export const OrderController = {
          ORDER BY p.created_at DESC`,
         [userId]
       );
-
-      // Para cada pedido, buscar os itens relacionados
       const pedidosComItens = await Promise.all(
         pedidosResult.rows.map(async (pedido: PedidoDB) => {
           const itensResult = await pool.query(
@@ -136,11 +109,9 @@ export const OrderController = {
           return { ...pedido, items: itensResult.rows as PedidoItem[] };
         })
       );
-
       res.status(200).json(pedidosComItens);
     } catch (error) {
-      console.error('[ERRO AO BUSCAR PEDIDOS]', error);
-      next(error); // Passa o erro para o middleware de tratamento de erros
+      next(error);
     }
   },
 };

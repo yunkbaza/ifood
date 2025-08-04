@@ -1,11 +1,9 @@
-// backend/src/controllers/restaurant.controller.ts
-
-import { RequestHandler } from 'express';
+import { RequestHandler, Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import { pool } from '../lib/db';
 
 export const RestaurantController = {
-  create: (async (req: AuthenticatedRequest, res) => {
+  create: (async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const { name, externalId } = req.body;
     const ownerId = req.userId;
 
@@ -21,10 +19,9 @@ export const RestaurantController = {
         [name, externalId, ownerId]
       );
       const restaurant = restaurantResult.rows[0];
-      res.status(201).json(restaurant);      
+      res.status(201).json(restaurant);
     } catch (err) {
-      console.error('[ERRO AO CADASTRAR LOJA]', err);
-      res.status(400).json({ message: 'Erro ao cadastrar loja', error: err });
+      next(err);
     }
   }) as RequestHandler
 };
