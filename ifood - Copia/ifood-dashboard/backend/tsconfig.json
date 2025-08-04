@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    /* ===== Ambiente e JavaScript emitido ===== */
+    "target": "es2017",                 // versão JS gerada
+    "module": "commonjs",               // padrão no Node
+    "rootDir": "./src",                 // onde ficam seus .ts
+    "outDir": "./dist",                 // para onde o JS compilado irá
+
+    /* ===== Qualidade de código ===== */
+    "strict": true,                     // todas as verificações estritas
+    "esModuleInterop": true,            // permite importar CommonJS com default
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,               // ignora typings de libs
+
+    /* ===== Utilidades úteis ===== */
+    "resolveJsonModule": true           // se quiser importar JSONs
+  },
+  "include": ["src/**/*.ts"],           // compila só o que está em src
+  "exclude": ["node_modules"]           // ignora dependências
+}
