@@ -1,13 +1,17 @@
+// backend/src/routes/order.routes.ts
+
+// Importações
 import { Router } from 'express';
 import { OrderController } from '../controllers/order.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-// Importação de pedidos via arquivo, acessível apenas para usuários autenticados
+// ANOTAÇÃO: O middleware 'authenticate' protege a rota, garantindo que apenas
+// usuários autenticados possam acessar a importação de pedidos.
 router.post('/import', authenticate, OrderController.create);
 
-// Consulta de todos os pedidos cadastrados
+// A rota de listagem também é protegida.
 router.get('/', authenticate, OrderController.getAll);
 
 export default router;

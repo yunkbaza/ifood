@@ -1,8 +1,11 @@
+// backend/src/controllers/order.controller.ts
+
+// Importações
 import { Request, Response, NextFunction } from 'express';
 import { pool } from '../lib/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
-// Definições de tipos e mock...
+// ANOTAÇÃO: Definição de interfaces para tipagem forte, melhorando a previsibilidade e manutenção do código.
 interface PedidoItem {
   id?: number;
   name: string;
@@ -56,6 +59,8 @@ export const OrderController = {
     const client = await pool.connect();
     
     try {
+      // ANOTAÇÃO: Uso de transação para garantir que todas as inserções de um pedido
+      // (principal e itens) sejam atômicas. Se algo falhar, tudo é desfeito.
       await client.query('BEGIN');
       for (const pedido of pedidosMock) {
         const pedidoResult = await client.query(
@@ -79,6 +84,8 @@ export const OrderController = {
       await client.query('ROLLBACK');
       next(error);
     } finally {
+      // ANOTAÇÃO: É crucial liberar o cliente de volta para o pool para evitar
+      // que as conexões se esgotem.
       client.release();
     }
   },

@@ -1,3 +1,6 @@
+// backend/src/controllers/restaurant.controller.ts
+
+// Importações
 import { RequestHandler, Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import { pool } from '../lib/db';
@@ -21,6 +24,7 @@ export const RestaurantController = {
       const restaurant = restaurantResult.rows[0];
       res.status(201).json(restaurant);
     } catch (err) {
+      // ANOTAÇÃO: O erro é passado para o middleware global para tratamento consistente.
       next(err);
     }
   }) as RequestHandler
