@@ -1,3 +1,5 @@
+// frontend/src/pages/DashboardPage.tsx
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -12,10 +14,10 @@ import {
 } from '@/api/api';
 import { Order } from '@/assets/types';
 import GlobalLayout from '@/components/Layout/GlobalLayout';
-import OrdersByStatusChart from '@/components/Charts/OrdersByStatusChart';
-import RevenueByMonthChart from '@/components/Charts/RevenueByMonthChart';
-import WeeklyOrdersChart from '@/components/Charts/WeeklyOrdersChart';
-import AverageRatingsChart from '@/components/Charts/AverageRatingsChart';
+import OrdersByStatusChart from '@/components/Graficos/GraficoPedidosPorStatus';
+import RevenueByMonthChart from '@/components/Graficos/GraficoFaturamentoMensal';
+import WeeklyOrdersChart from '@/components/Graficos/GraficoPedidosSemanais';
+import AverageRatingsChart from '@/components/Graficos/GraficoAvaliacoesMedias';
 
 // Tipos para as respostas dos novos endpoints
 interface MonthlyRevenueData {
@@ -44,6 +46,7 @@ interface AverageRatingsData {
   media_nota: number;
 }
 
+
 const DashboardPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -54,9 +57,17 @@ const DashboardPage = () => {
   const [weeklyOrders, setWeeklyOrders] = useState<WeeklyOrdersData[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
+  // Estado para os filtros de data
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Efeito que busca os dados da API sempre que os filtros ou o estado de autenticação mudam
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
+      setDataLoading(true);
+
+      const filters = { start_date: startDate, end_date: endDate };
 
       try {
         const [
@@ -67,12 +78,12 @@ const DashboardPage = () => {
           averageRatingsResponse,
           weeklyOrdersResponse,
         ] = await Promise.all([
-          getOrders(),
-          getMonthlyRevenue(),
-          getOrdersByStatus(),
-          getTopSellingProducts(),
-          getAverageRatings(),
-          getWeeklyOrders(),
+          getOrders(filters),
+          getMonthlyRevenue(filters),
+          getOrdersByStatus(filters),
+          getTopSellingProducts(filters),
+          getAverageRatings(filters),
+          getWeeklyOrders(filters),
         ]);
 
         setOrders(ordersResponse.data);
@@ -92,7 +103,8 @@ const DashboardPage = () => {
     if (!authLoading) {
       fetchData();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, startDate, endDate]);
+
 
   if (authLoading || dataLoading) {
     return (
@@ -102,11 +114,13 @@ const DashboardPage = () => {
     );
   }
 
+  // Cálculo de KPIs a partir dos dados da API
   const totalRevenue = monthlyRevenue.reduce((sum, item) => sum + parseFloat(item.faturamento_total), 0);
   const deliveredOrders = ordersByStatus.find(item => item.status === 'Entregue')?.total || 0;
   const cancelledOrders = ordersByStatus.find(item => item.status === 'Cancelado')?.total || 0;
   const totalOrders = ordersByStatus.reduce((sum, item) => sum + item.total, 0);
 
+  // Mapeamento dos dados para o formato esperado pelos gráficos
   const ordersByStatusChartData = ordersByStatus.map(item => ({
       name: item.status,
       value: item.total,
@@ -129,8 +143,32 @@ const DashboardPage = () => {
 
   return (
     <GlobalLayout>
+      {/* Seletor de datas */}
+      <div className="flex items-center space-x-4 mb-6">
+        <div className="flex flex-col">
+          <label htmlFor="startDate" className="text-sm font-medium text-gray-700">Data de Início</label>
+          <input
+            type="date"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="endDate" className="text-sm font-medium text-gray-700">Data de Fim</label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card de Faturamento Total */}
+        {/* Cards de KPIs */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold text-gray-500">Faturamento Total</h2>
           <p className="text-3xl font-bold text-green-600 mt-2">

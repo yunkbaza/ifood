@@ -3,12 +3,12 @@
 import axios from 'axios';
 import { User, Order, Restaurant } from '../assets/types';
 
-// Cria uma instância do Axios com a URL base do seu backend.
+// Cria uma instância do Axios para se conectar com o backend.
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
-// Adiciona o token de autenticação a cada requisição.
+// Adiciona o token de autenticação a cada requisição para proteger as rotas.
 api.interceptors.request.use(
   (config) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -22,16 +22,18 @@ api.interceptors.request.use(
   }
 );
 
-// Funções para interagir com os endpoints do seu backend.
+// Define a interface para os filtros de data.
 interface DateFilter {
   start_date?: string;
   end_date?: string;
 }
 
+// Funções para interagir com os endpoints do backend.
 export const loginApi = (email: string, password: string) => {
   return api.post<{ user: User, token: string }>('/auth/login', { email, password });
 };
 
+// Funções para buscar dados, agora com suporte a filtros de data.
 export const getOrders = (filters: DateFilter = {}) => {
   return api.get<Order[]>('/orders', { params: filters });
 };

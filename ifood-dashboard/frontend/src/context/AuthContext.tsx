@@ -1,3 +1,5 @@
+// frontend/src/context/AuthContext.tsx
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -17,6 +19,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Efeito que roda ao carregar a aplicação para verificar o token de autenticação
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -26,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
+  // Função para realizar o login na API e salvar o token
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -39,6 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Função para fazer logout e remover o token do armazenamento
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);

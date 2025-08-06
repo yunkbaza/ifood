@@ -1,3 +1,5 @@
+// frontend/src/components/Charts/WeeklyOrdersChart.tsx
+
 'use client';
 
 import React from 'react';
@@ -11,12 +13,13 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+// Interface para a tipagem dos dados do gráfico
 interface ChartData {
   semana: string;
   total_pedidos: number;
 }
 
-const WeeklyOrdersChart = ({ data }: { data: ChartData[] }) => {
+const GraficoPedidosSemanais = ({ data }: { data: ChartData[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart
@@ -38,4 +41,4 @@ const WeeklyOrdersChart = ({ data }: { data: ChartData[] }) => {
   );
 };
 
-export default WeeklyOrdersChart;
+export default GraficoPedidosSemanais;

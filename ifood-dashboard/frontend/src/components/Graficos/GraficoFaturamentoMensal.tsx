@@ -1,14 +1,17 @@
+// frontend/src/components/Charts/RevenueByMonthChart.tsx
+
 'use client';
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
+// Interface para a tipagem dos dados do gráfico
 interface ChartData {
   name: string;
   revenue: number;
 }
 
-const RevenueByMonthChart = ({ data }: { data: ChartData[] }) => {
+const GraficoFaturamentoMensal = ({ data }: { data: ChartData[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>
@@ -22,4 +25,4 @@ const RevenueByMonthChart = ({ data }: { data: ChartData[] }) => {
   );
 };
 
-export default RevenueByMonthChart;
+export default GraficoFaturamentoMensal;

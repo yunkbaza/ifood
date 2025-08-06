@@ -1,21 +1,25 @@
+// frontend/src/components/Charts/OrdersByStatusChart.tsx
+
 'use client';
 
 import React from 'react';
 import { PieChart, Pie, Tooltip, Cell, ResponsiveContainer, Legend } from 'recharts';
 
+// Interface para a tipagem dos dados do gráfico
 interface ChartData {
   name: string;
   value: number;
 }
 
+// Cores personalizadas para cada status de pedido
 const COLORS = {
-  'Entregue': '#22C55E',
-  'Cancelado': '#EF4444',
-  'Em andamento': '#F97316',
-  'Saiu para entrega': '#3B82F6',
+  'Entregue': '#22C55E', // verde
+  'Cancelado': '#EF4444', // vermelho
+  'Em andamento': '#F97316', // laranja
+  'Saiu para entrega': '#3B82F6', // azul
 };
 
-const OrdersByStatusChart = ({ data }: { data: ChartData[] }) => {
+const GraficoPedidosPorStatus = ({ data }: { data: ChartData[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
@@ -40,4 +44,4 @@ const OrdersByStatusChart = ({ data }: { data: ChartData[] }) => {
   );
 };
 
-export default OrdersByStatusChart;
+export default GraficoPedidosPorStatus;

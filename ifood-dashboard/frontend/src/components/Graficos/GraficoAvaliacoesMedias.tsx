@@ -1,3 +1,5 @@
+// frontend/src/components/Charts/AverageRatingsChart.tsx
+
 'use client';
 
 import React from 'react';
@@ -11,12 +13,13 @@ import {
   CartesianGrid,
 } from 'recharts';
 
+// Interface para a tipagem dos dados do gráfico
 interface ChartData {
   unidade: string;
   media_nota: number;
 }
 
-const AverageRatingsChart = ({ data }: { data: ChartData[] }) => {
+const GraficoAvaliacoesMedias = ({ data }: { data: ChartData[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart
@@ -38,4 +41,4 @@ const AverageRatingsChart = ({ data }: { data: ChartData[] }) => {
   );
 };
 
-export default AverageRatingsChart;
+export default GraficoAvaliacoesMedias;

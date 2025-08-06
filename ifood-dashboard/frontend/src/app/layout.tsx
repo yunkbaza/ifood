@@ -18,8 +18,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className={inter.className}>
+        {/* O AuthProvider envolve toda a aplicação para gerenciar o estado do usuário */}
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
