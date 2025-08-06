@@ -1,5 +1,3 @@
-// frontend/src/assets/types.ts
-
 // Tipos de dados para as tabelas do seu backend
 export interface User {
   id: number;

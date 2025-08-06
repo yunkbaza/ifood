@@ -1,5 +1,3 @@
-// backend/src/routes/metrics.routes.ts
-
 import { Router } from 'express';
 import { MetricsController } from '../controllers/metrics.controller';
 import { authenticate } from '../middlewares/auth.middleware';

@@ -1,5 +1,3 @@
-// frontend/src/components/Charts/OrdersByStatusChart.tsx
-
 'use client';
 
 import React from 'react';

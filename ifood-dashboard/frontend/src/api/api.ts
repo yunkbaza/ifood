@@ -1,5 +1,3 @@
-// frontend/src/api/api.ts
-
 import axios from 'axios';
 import { User, Order, Restaurant } from '../assets/types';
 

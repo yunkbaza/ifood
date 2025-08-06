@@ -1,5 +1,3 @@
-// backend/src/lib/db.ts
-
 // Importações
 import { Pool } from 'pg';
 import dotenv from 'dotenv';

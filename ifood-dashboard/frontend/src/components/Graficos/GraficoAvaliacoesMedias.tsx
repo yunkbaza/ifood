@@ -1,5 +1,3 @@
-// frontend/src/components/Charts/AverageRatingsChart.tsx
-
 'use client';
 
 import React from 'react';

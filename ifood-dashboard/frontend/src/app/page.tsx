@@ -1,5 +1,3 @@
-// frontend/src/app/page.tsx
-
 'use client'; // Indica que este é um componente do lado do cliente
 
 import { useAuth } from '@/context/AuthContext';

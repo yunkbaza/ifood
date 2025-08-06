@@ -1,5 +1,3 @@
-// backend/src/jobs/updateMetricsJob.ts
-
 import { pool } from '../lib/db';
 
 // ANOTAÇÃO: Esta é a lógica de simulação que será substituída

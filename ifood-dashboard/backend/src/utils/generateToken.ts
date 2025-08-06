@@ -1,5 +1,3 @@
-// backend/src/utils/generateToken.ts
-
 // Importações
 import jwt from 'jsonwebtoken';
 

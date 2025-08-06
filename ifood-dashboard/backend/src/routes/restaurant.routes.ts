@@ -1,5 +1,3 @@
-// backend/src/routes/restaurant.routes.ts
-
 // Importações
 import { Router } from 'express';
 import { RestaurantController } from '../controllers/restaurant.controller';

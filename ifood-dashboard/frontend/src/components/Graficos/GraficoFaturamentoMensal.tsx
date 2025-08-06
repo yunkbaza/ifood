@@ -1,5 +1,3 @@
-// frontend/src/components/Charts/RevenueByMonthChart.tsx
-
 'use client';
 
 import React from 'react';

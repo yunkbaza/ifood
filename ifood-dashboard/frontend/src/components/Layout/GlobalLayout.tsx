@@ -1,5 +1,3 @@
-// frontend/src/components/Layout/GlobalLayout.tsx
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 

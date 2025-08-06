@@ -1,5 +1,3 @@
-// backend/src/controllers/auth.controller.ts
-
 // Importações
 import { RequestHandler, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';

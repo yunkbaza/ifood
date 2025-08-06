@@ -1,5 +1,3 @@
-// backend/src/controllers/metrics.controller.ts
-
 import { Request, Response, NextFunction } from 'express';
 import { pool } from '../lib/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';

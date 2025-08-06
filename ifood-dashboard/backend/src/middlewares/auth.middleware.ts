@@ -1,5 +1,3 @@
-// backend/src/middlewares/auth.middleware.ts
-
 // Importações de módulos e bibliotecas
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';

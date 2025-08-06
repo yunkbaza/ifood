@@ -1,5 +1,3 @@
-// backend/src/controllers/restaurant.controller.ts
-
 // Importações
 import { RequestHandler, Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';

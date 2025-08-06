@@ -1,5 +1,3 @@
-// frontend/src/components/Charts/WeeklyOrdersChart.tsx
-
 'use client';
 
 import React from 'react';

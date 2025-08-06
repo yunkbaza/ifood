@@ -1,5 +1,3 @@
-// backend/src/controllers/order.controller.ts
-
 // Importações
 import { Request, Response, NextFunction } from 'express';
 import { pool } from '../lib/db';
