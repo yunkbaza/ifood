@@ -1,110 +1,205 @@
-iFood Dashboard Analítico
+# iFood Dashboard Analítico
+
 Bem-vindo ao iFood Dashboard Analítico, uma ferramenta de visualização de dados desenvolvida para auxiliar gerentes de restaurantes a acompanhar as principais métricas de desempenho de suas operações na plataforma iFood.
 
-O projeto é dividido em dois serviços principais: um backend em Node.js (Express) e um frontend em Next.js (React), que se comunicam para exibir dados em tempo real e de forma interativa.
+O projeto é dividido em dois serviços principais: um **backend** em Node.js (Express) e um **frontend** em Next.js (React), que se comunicam para exibir dados em tempo real e de forma interativa.
 
-Tecnologias Utilizadas
-Backend
-Node.js: Ambiente de execução JavaScript.
+---
 
-Express: Framework web para criar a API REST.
+## 🚀 Tecnologias Utilizadas
 
-TypeScript: Adiciona tipagem estática para um código mais robusto e fácil de manter.
+### Backend
 
-PostgreSQL: Banco de dados relacional para armazenamento de dados.
+* **Node.js**: Ambiente de execução JavaScript.
+* **Express**: Framework web para criar a API REST.
+* **TypeScript**: Adiciona tipagem estática para um código mais robusto e fácil de manter.
+* **PostgreSQL**: Banco de dados relacional para armazenamento de dados.
+* **`pg`**: Biblioteca para conexão com o banco de dados PostgreSQL.
+* **`jsonwebtoken`**: Utilizado para autenticação de usuários via JWT.
+* **`bcrypt`**: Para hash seguro de senhas.
+* **`node-cron`**: Gerencia um job periódico para manter as métricas atualizadas.
 
-pg: Biblioteca para conexão com o banco de dados PostgreSQL.
+### Frontend
 
-jsonwebtoken: Utilizado para autenticação de usuários via JWT.
+* **Next.js**: Framework React para renderização do lado do servidor e otimizações de performance.
+* **React**: Biblioteca para construção da interface de usuário.
+* **TypeScript**: Garante a tipagem e a consistência dos componentes.
+* **Tailwind CSS**: Framework de estilização utilitário para um design rápido e moderno.
+* **Recharts**: Biblioteca para renderização de gráficos e visualização de dados.
+* **Axios**: Cliente HTTP para se comunicar com a API do backend.
 
-bcrypt: Para hash seguro de senhas.
+---
 
-node-cron: Gerencia um job periódico para manter as métricas atualizadas.
+## ✨ Funcionalidades
 
-Frontend
-Next.js: Framework React para renderização do lado do servidor e otimizações de performance.
-
-React: Biblioteca para construção da interface de usuário.
-
-TypeScript: Garante a tipagem e a consistência dos componentes.
-
-Tailwind CSS: Framework de estilização utilitário para um design rápido e moderno.
-
-Recharts: Biblioteca para renderização de gráficos e visualização de dados.
-
-Axios: Cliente HTTP para se comunicar com a API do backend.
-
-Funcionalidades
 O dashboard oferece as seguintes funcionalidades principais:
 
-Autenticação de Usuário: Sistema de login seguro para acesso ao painel de controle.
+* **Autenticação de Usuário**: Sistema de login seguro para acesso ao painel de controle.
+* **Painel de Métricas (Dashboard)**: Exibição de KPIs (Key Performance Indicators) essenciais, como:
+    * Faturamento Total
+    * Total de Pedidos
+    * Pedidos Entregues e Cancelados
+* **Gráficos Interativos**:
+    * `Gráfico de Pedidos por Status`: Mostra a distribuição dos pedidos por status (entregue, cancelado, em andamento).
+    * `Gráfico de Faturamento Mensal`: Exibe a evolução do faturamento ao longo do tempo.
+    * `Gráfico de Pedidos Semanais`: Acompanha a tendência do número de pedidos por semana.
+    * `Gráfico de Avaliações Médias`: Compara a média de notas de cada unidade.
+* **Filtros de Dados**: Permite filtrar todas as métricas por um intervalo de data personalizado.
+* **Job de Atualização Automática**: Um serviço em segundo plano que simula a ingestão e o processamento diário de dados, garantindo que o dashboard esteja sempre atualizado.
 
-Painel de Métricas (Dashboard): Exibição de KPIs (Key Performance Indicators) essenciais, como:
+---
 
-Faturamento Total
+## 🛠️ Configuração e Instalação
 
-Total de Pedidos
-
-Pedidos Entregues e Cancelados
-
-Gráficos Interativos:
-
-Gráfico de Pedidos por Status: Mostra a distribuição dos pedidos por status (entregue, cancelado, em andamento).
-
-Gráfico de Faturamento Mensal: Exibe a evolução do faturamento ao longo do tempo.
-
-Gráfico de Pedidos Semanais: Acompanha a tendência do número de pedidos por semana.
-
-Gráfico de Avaliações Médias: Compara a média de notas de cada unidade.
-
-Filtros de Dados: Permite filtrar todas as métricas por um intervalo de data personalizado.
-
-Job de Atualização Automática: Um serviço em segundo plano que simula a ingestão e o processamento diário de dados, garantindo que o dashboard esteja sempre atualizado.
-
-Configuração e Instalação
 Para configurar e executar o projeto, siga os passos abaixo. Certifique-se de ter o Node.js, npm/yarn e o PostgreSQL instalados.
 
-1. Backend
-Navegue até a pasta backend.
+### 1. Backend
 
-Instale as dependências:
+1.  Navegue até a pasta `backend`.
+2.  Instale as dependências:
+    ```bash
+    npm install
+    ```
+3.  Crie um arquivo `.env` na pasta `backend` com as seguintes variáveis de ambiente:
+    ```
+    PORT=3333
+    DATABASE_URL="postgres://usuario:senha@localhost:5432/nomedobanco"
+    JWT_SECRET="sua_chave_secreta_jwt"
+    ```
+4.  Substitua os valores de `DATABASE_URL` com as credenciais do seu banco de dados.
+5.  Execute as migrations do banco de dados (assumindo que você tenha um script para isso).
+6.  Inicie o servidor de desenvolvimento:
+    ```bash
+    npm run dev
+    ```
 
-Bash
+### 2. Frontend
 
-npm install
-Crie um arquivo .env na pasta backend com as seguintes variáveis de ambiente:
+1.  Navegue até a pasta `frontend`.
+2.  Instale as dependências:
+    ```bash
+    npm install
+    ```
+3.  Crie um arquivo `.env.local` na pasta `frontend` com a URL do seu backend:
+    ```
+    NEXT_PUBLIC_API_URL=http://localhost:3333
+    ```
+4.  Inicie o servidor de desenvolvimento:
+    ```bash
+    npm run dev
+    ```
 
-PORT=3333
-DATABASE_URL="postgres://usuario:senha@localhost:5432/nomedobanco"
-JWT_SECRET="sua_chave_secreta_jwt"
-Substitua os valores de DATABASE_URL com as credenciais do seu banco de dados.
+Após seguir esses passos, a aplicação estará disponível em `http://localhost:3000`.
 
-Execute as migrations do banco de dados (assumindo que você tenha um script para isso).
+---
 
-Inicie o servidor de desenvolvimento:
+## 📂 Estrutura do Projeto
 
-Bash
+O projeto é organizado da seguinte forma:
 
-npm run dev
-2. Frontend
-Navegue até a pasta frontend.
+Com certeza! Um README.md bem formatado é essencial para a clareza e profissionalismo do seu projeto. Vou formatar o conteúdo que geramos usando a sintaxe Markdown para que ele fique com uma aparência limpa e fácil de ler no GitHub.
 
-Instale as dependências:
+Aqui está o conteúdo do README.md pronto para ser copiado e colado na pasta raiz do seu projeto.
 
-Bash
+Markdown
 
-npm install
-Crie um arquivo .env.local na pasta frontend com a URL do seu backend:
+# iFood Dashboard Analítico
 
-NEXT_PUBLIC_API_URL=http://localhost:3333
-Inicie o servidor de desenvolvimento:
+Bem-vindo ao iFood Dashboard Analítico, uma ferramenta de visualização de dados desenvolvida para auxiliar gerentes de restaurantes a acompanhar as principais métricas de desempenho de suas operações na plataforma iFood.
 
-Bash
+O projeto é dividido em dois serviços principais: um **backend** em Node.js (Express) e um **frontend** em Next.js (React), que se comunicam para exibir dados em tempo real e de forma interativa.
 
-npm run dev
-Após seguir esses passos, a aplicação estará disponível em http://localhost:3000.
+---
 
-Estrutura do Projeto
+## 🚀 Tecnologias Utilizadas
+
+### Backend
+
+* **Node.js**: Ambiente de execução JavaScript.
+* **Express**: Framework web para criar a API REST.
+* **TypeScript**: Adiciona tipagem estática para um código mais robusto e fácil de manter.
+* **PostgreSQL**: Banco de dados relacional para armazenamento de dados.
+* **`pg`**: Biblioteca para conexão com o banco de dados PostgreSQL.
+* **`jsonwebtoken`**: Utilizado para autenticação de usuários via JWT.
+* **`bcrypt`**: Para hash seguro de senhas.
+* **`node-cron`**: Gerencia um job periódico para manter as métricas atualizadas.
+
+### Frontend
+
+* **Next.js**: Framework React para renderização do lado do servidor e otimizações de performance.
+* **React**: Biblioteca para construção da interface de usuário.
+* **TypeScript**: Garante a tipagem e a consistência dos componentes.
+* **Tailwind CSS**: Framework de estilização utilitário para um design rápido e moderno.
+* **Recharts**: Biblioteca para renderização de gráficos e visualização de dados.
+* **Axios**: Cliente HTTP para se comunicar com a API do backend.
+
+---
+
+## ✨ Funcionalidades
+
+O dashboard oferece as seguintes funcionalidades principais:
+
+* **Autenticação de Usuário**: Sistema de login seguro para acesso ao painel de controle.
+* **Painel de Métricas (Dashboard)**: Exibição de KPIs (Key Performance Indicators) essenciais, como:
+    * Faturamento Total
+    * Total de Pedidos
+    * Pedidos Entregues e Cancelados
+* **Gráficos Interativos**:
+    * `Gráfico de Pedidos por Status`: Mostra a distribuição dos pedidos por status (entregue, cancelado, em andamento).
+    * `Gráfico de Faturamento Mensal`: Exibe a evolução do faturamento ao longo do tempo.
+    * `Gráfico de Pedidos Semanais`: Acompanha a tendência do número de pedidos por semana.
+    * `Gráfico de Avaliações Médias`: Compara a média de notas de cada unidade.
+* **Filtros de Dados**: Permite filtrar todas as métricas por um intervalo de data personalizado.
+* **Job de Atualização Automática**: Um serviço em segundo plano que simula a ingestão e o processamento diário de dados, garantindo que o dashboard esteja sempre atualizado.
+
+---
+
+## 🛠️ Configuração e Instalação
+
+Para configurar e executar o projeto, siga os passos abaixo. Certifique-se de ter o Node.js, npm/yarn e o PostgreSQL instalados.
+
+### 1. Backend
+
+1.  Navegue até a pasta `backend`.
+2.  Instale as dependências:
+    ```bash
+    npm install
+    ```
+3.  Crie um arquivo `.env` na pasta `backend` com as seguintes variáveis de ambiente:
+    ```
+    PORT=3333
+    DATABASE_URL="postgres://usuario:senha@localhost:5432/nomedobanco"
+    JWT_SECRET="sua_chave_secreta_jwt"
+    ```
+4.  Substitua os valores de `DATABASE_URL` com as credenciais do seu banco de dados.
+5.  Execute as migrations do banco de dados (assumindo que você tenha um script para isso).
+6.  Inicie o servidor de desenvolvimento:
+    ```bash
+    npm run dev
+    ```
+
+### 2. Frontend
+
+1.  Navegue até a pasta `frontend`.
+2.  Instale as dependências:
+    ```bash
+    npm install
+    ```
+3.  Crie um arquivo `.env.local` na pasta `frontend` com a URL do seu backend:
+    ```
+    NEXT_PUBLIC_API_URL=http://localhost:3333
+    ```
+4.  Inicie o servidor de desenvolvimento:
+    ```bash
+    npm run dev
+    ```
+
+Após seguir esses passos, a aplicação estará disponível em `http://localhost:3000`.
+
+---
+
+## 📂 Estrutura do Projeto
+
 O projeto é organizado da seguinte forma:
 
 ifood-dashboard/
