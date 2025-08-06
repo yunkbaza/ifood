@@ -17,7 +17,7 @@ import RevenueByMonthChart from '@/components/Charts/RevenueByMonthChart';
 import WeeklyOrdersChart from '@/components/Charts/WeeklyOrdersChart';
 import AverageRatingsChart from '@/components/Charts/AverageRatingsChart';
 
-// ANOTAÇÃO: Tipos para as respostas dos novos endpoints
+// Tipos para as respostas dos novos endpoints
 interface MonthlyRevenueData {
   unidade: string;
   mes: string;
@@ -44,7 +44,6 @@ interface AverageRatingsData {
   media_nota: number;
 }
 
-
 const DashboardPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -55,16 +54,9 @@ const DashboardPage = () => {
   const [weeklyOrders, setWeeklyOrders] = useState<WeeklyOrdersData[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
-  // ANOTAÇÃO: Estado para os filtros de data
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
-      setDataLoading(true);
-
-      const filters = { start_date: startDate, end_date: endDate };
 
       try {
         const [
@@ -75,12 +67,12 @@ const DashboardPage = () => {
           averageRatingsResponse,
           weeklyOrdersResponse,
         ] = await Promise.all([
-          getOrders(filters),
-          getMonthlyRevenue(filters),
-          getOrdersByStatus(filters),
-          getTopSellingProducts(filters),
-          getAverageRatings(filters),
-          getWeeklyOrders(filters),
+          getOrders(),
+          getMonthlyRevenue(),
+          getOrdersByStatus(),
+          getTopSellingProducts(),
+          getAverageRatings(),
+          getWeeklyOrders(),
         ]);
 
         setOrders(ordersResponse.data);
@@ -100,7 +92,7 @@ const DashboardPage = () => {
     if (!authLoading) {
       fetchData();
     }
-  }, [user, authLoading, startDate, endDate]); // ANOTAÇÃO: Dependências para o useEffect
+  }, [user, authLoading]);
 
   if (authLoading || dataLoading) {
     return (
@@ -137,32 +129,8 @@ const DashboardPage = () => {
 
   return (
     <GlobalLayout>
-      {/* ANOTAÇÃO: Seletor de datas */}
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="flex flex-col">
-          <label htmlFor="startDate" className="text-sm font-medium text-gray-700">Data de Início</label>
-          <input
-            type="date"
-            id="startDate"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="endDate" className="text-sm font-medium text-gray-700">Data de Fim</label>
-          <input
-            type="date"
-            id="endDate"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Cards de KPIs */}
+        {/* Card de Faturamento Total */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold text-gray-500">Faturamento Total</h2>
           <p className="text-3xl font-bold text-green-600 mt-2">

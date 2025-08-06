@@ -11,7 +11,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// ANOTAÇÃO: Interface de tipagem para os dados do gráfico
 interface ChartData {
   semana: string;
   total_pedidos: number;

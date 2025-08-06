@@ -1,5 +1,3 @@
-// frontend/src/components/Charts/OrdersByStatusChart.tsx
-
 'use client';
 
 import React from 'react';
@@ -11,10 +9,10 @@ interface ChartData {
 }
 
 const COLORS = {
-  'Entregue': '#22C55E', // verde
-  'Cancelado': '#EF4444', // vermelho
-  'Em andamento': '#F97316', // laranja
-  'Saiu para entrega': '#3B82F6', // azul
+  'Entregue': '#22C55E',
+  'Cancelado': '#EF4444',
+  'Em andamento': '#F97316',
+  'Saiu para entrega': '#3B82F6',
 };
 
 const OrdersByStatusChart = ({ data }: { data: ChartData[] }) => {

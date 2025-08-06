@@ -3,12 +3,12 @@
 import axios from 'axios';
 import { User, Order, Restaurant } from '../assets/types';
 
-// ANOTAÇÃO: Cria uma instância do Axios com a URL base do seu backend.
+// Cria uma instância do Axios com a URL base do seu backend.
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
-// ANOTAÇÃO: Adiciona o token de autenticação a cada requisição
+// Adiciona o token de autenticação a cada requisição.
 api.interceptors.request.use(
   (config) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -22,16 +22,15 @@ api.interceptors.request.use(
   }
 );
 
-// ANOTAÇÃO: Funções para interagir com os endpoints do seu backend.
-export const loginApi = (email: string, password: string) => {
-  return api.post<{ user: User, token: string }>('/auth/login', { email, password });
-};
-
-// ANOTAÇÃO: Funções de métricas agora aceitam um objeto de filtro
+// Funções para interagir com os endpoints do seu backend.
 interface DateFilter {
   start_date?: string;
   end_date?: string;
 }
+
+export const loginApi = (email: string, password: string) => {
+  return api.post<{ user: User, token: string }>('/auth/login', { email, password });
+};
 
 export const getOrders = (filters: DateFilter = {}) => {
   return api.get<Order[]>('/orders', { params: filters });
