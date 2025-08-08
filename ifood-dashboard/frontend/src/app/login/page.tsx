@@ -1,5 +1,3 @@
-// frontend/src/app/login/page.tsx
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -65,5 +63,4 @@ const LoginPage = () => {
     </div>
   );
 };
-
 export default LoginPage;

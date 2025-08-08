@@ -3,56 +3,41 @@
 import React from 'react';
 import { PieChart, Pie, Tooltip, Cell, ResponsiveContainer, Legend } from 'recharts';
 
+// Interface para a tipagem dos dados do gráfico
 interface ChartData {
-  status: string;
-  total: number;
+  name: string;
+  value: number;
 }
 
+// Cores personalizadas para cada status de pedido
 const COLORS = {
-  'Entregue': 'var(--chart-green)',
-  'Cancelado': 'var(--ifood-red)',
-  'Em andamento': 'var(--chart-orange)',
-  'Saiu para entrega': 'var(--chart-blue)',
+  'Entregue': '#22C55E', // verde
+  'Cancelado': '#EF4444', // vermelho
+  'Em andamento': '#F97316', // laranja
+  'Saiu para entrega': '#3B82F6', // azul
 };
 
-const OrdersStatusChart = ({ data }: { data: ChartData[] }) => {
-  const chartData = data.map(item => ({
-    name: item.status,
-    value: item.total,
-  }));
-
+export const GraficoPedidosPorStatus = ({ data }: { data: ChartData[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
-          data={chartData}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          outerRadius={80}
-          fill="#8884d8"
+          data={data}
           dataKey="value"
           nameKey="name"
-          label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-            const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-            const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
-            const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-            return (
-              <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={14}>
-                {`${(percent * 100).toFixed(0)}%`}
-              </text>
-            );
-          }}
+          cx="50%"
+          cy="50%"
+          outerRadius={80}
+          fill="#8884d8"
+          label
         >
-          {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || '#8884d8'} />
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => [value, "Pedidos"]} />
-        <Legend iconSize={10} />
+        <Tooltip />
+        <Legend />
       </PieChart>
     </ResponsiveContainer>
   );
 };
-
-export default OrdersStatusChart;

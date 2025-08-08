@@ -1,32 +1,40 @@
 'use client';
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { format, parseISO } from 'date-fns';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
-// CORREÇÃO: A interface agora espera um número
+// Interface para a tipagem dos dados do gráfico
 interface ChartData {
   semana: string;
   total_pedidos: number;
 }
 
-const WeeklyOrdersChart = ({ data }: { data: ChartData[] }) => {
-  const chartData = data.map(item => ({
-    name: format(parseISO(item.semana), "dd/MM"),
-    Pedidos: item.total_pedidos, // Não precisa mais de parseInt aqui
-  }));
-
+export const GraficoPedidosSemanais = ({ data }: { data: ChartData[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} />
+      <LineChart
+        data={data}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="semana" />
+        <YAxis />
         <Tooltip />
-        <Line type="monotone" dataKey="Pedidos" stroke="var(--chart-blue)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 8 }} />
+        <Line type="monotone" dataKey="total_pedidos" stroke="#8884d8" activeDot={{ r: 8 }} />
       </LineChart>
     </ResponsiveContainer>
   );
 };
-
-export default WeeklyOrdersChart;
