@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginApi } from '../api/api';
+import { loginApi, getMe } from '../api/api'; // Importamos a nova função getMe
 import { User } from '../assets/types';
 
 interface AuthContextType {
@@ -17,17 +17,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Efeito que roda ao carregar a aplicação para verificar o token de autenticação
+  // --- LÓGICA DO USEEFFECT CORRIGIDA ---
+  // Efeito que roda ao carregar a aplicação para verificar se existe um token válido.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Simula a validação do token com um usuário de teste por enquanto
-      setUser({ id: 1, name: 'Usuário Teste', email: 'teste@email.com' });
-    }
-    setLoading(false);
+    const loadUserFromToken = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // Usa a nova rota /me para validar o token e obter os dados do usuário
+          const { data } = await getMe();
+          setUser(data);
+        } catch (error) {
+          // Se o token for inválido (expirado, etc.), a API retornará um erro.
+          // Nesse caso, limpamos o token do localStorage.
+          console.error("Falha ao validar token, limpando sessão:", error);
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      }
+      // Finaliza o carregamento inicial
+      setLoading(false);
+    };
+
+    loadUserFromToken();
   }, []);
 
-  // Função para realizar o login na API e salvar o token
+  // Função para realizar o login na API e salvar o token (sem alterações)
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -36,12 +51,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(data.user);
     } catch (err) {
       console.error('Falha no login:', err);
+      // Você pode adicionar um tratamento de erro mais visível para o usuário aqui
+      throw err; // Lança o erro para que a página de login possa tratá-lo
     } finally {
       setLoading(false);
     }
   };
 
-  // Função para fazer logout e remover o token do armazenamento
+  // Função para fazer logout (sem alterações)
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);

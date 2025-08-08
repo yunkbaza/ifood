@@ -1,93 +1,57 @@
-// Importações
+// ifood-dashboard/backend/src/controllers/order.controller.ts
+
 import { Request, Response, NextFunction } from 'express';
 import { pool } from '../lib/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
-// ANOTAÇÃO: Definição de interfaces para tipagem forte, melhorando a previsibilidade e manutenção do código.
-interface PedidoItem {
-  id?: number;
-  name: string;
-  quantity: number;
-  price: number;
-  pedido_id?: number;
-}
-interface PedidoDB {
-  id: number;
-  external_id: string;
-  customer_name: string;
-  total: number;
-  status: string;
-  created_at: Date;
-  id_restaurante: number;
-  id_usuario: number;
-  restaurant_name: string;
-}
-interface PedidoMock {
-  externalId: string;
-  customerName: string;
-  total: number;
-  status: string;
-  createdAt: Date;
-  items: PedidoItem[];
-}
-const pedidosMock: PedidoMock[] = [
-  {
-    externalId: 'IF123456',
-    customerName: 'Allan Baeza',
-    total: 89.9,
-    status: 'delivered',
-    createdAt: new Date(),
-    items: [
-      { name: 'Pizza Calabresa', quantity: 1, price: 50 },
-      { name: 'Refrigerante', quantity: 2, price: 19.95 }
-    ]
-  }
-];
-
 export const OrderController = {
+  // --- FUNÇÃO 'create' ADICIONADA DE VOLTA ---
+  // Esta função simula a importação/criação de pedidos.
   create: async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-    const { restaurantId } = req.body;
-    const { userId } = req;
-
-    if (!restaurantId || !userId) {
-      res.status(400).json({ message: 'Dados de requisição incompletos.' });
-      return;
-    }
+    // Para um uso real, os dados viriam de req.body em vez de um mock.
+    const mockOrderData = {
+        customer_name: 'Cliente Teste',
+        valor_total: 99.9,
+        status: 'Em andamento',
+        id_unidade: req.body.restaurantId || 1, // Usa o ID do restaurante ou um padrão
+        id_cliente: 1, // ID de cliente padrão
+        items: [
+            { id_produto: 1, quantity: 1, price: 25.00 },
+            { id_produto: 3, quantity: 2, price: 6.00 }
+        ]
+    };
 
     const client = await pool.connect();
-    
     try {
-      // ANOTAÇÃO: Uso de transação para garantir que todas as inserções de um pedido
-      // (principal e itens) sejam atômicas. Se algo falhar, tudo é desfeito.
       await client.query('BEGIN');
-      for (const pedido of pedidosMock) {
-        const pedidoResult = await client.query(
-          `INSERT INTO pedidos (external_id, customer_name, total, status, created_at, id_restaurante, id_usuario)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
-           RETURNING id`,
-          [pedido.externalId, pedido.customerName, pedido.total, pedido.status, pedido.createdAt, restaurantId, userId]
+
+      const pedidoResult = await client.query(
+        `INSERT INTO pedidos (id_cliente, id_unidade, data_pedido, status, valor_total)
+         VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4)
+         RETURNING id`,
+        [mockOrderData.id_cliente, mockOrderData.id_unidade, mockOrderData.status, mockOrderData.valor_total]
+      );
+      const pedidoId = pedidoResult.rows[0].id;
+
+      for (const item of mockOrderData.items) {
+        await client.query(
+          `INSERT INTO itens_pedido (id_pedido, id_produto, quantidade, preco_unitario)
+           VALUES ($1, $2, $3, $4)`,
+          [pedidoId, item.id_produto, item.quantity, item.price]
         );
-        const pedidoId = pedidoResult.rows[0].id;
-        for (const item of pedido.items) {
-          await client.query(
-            `INSERT INTO pedido_items (name, quantity, price, pedido_id)
-             VALUES ($1, $2, $3, $4)`,
-            [item.name, item.quantity, item.price, pedidoId]
-          );
-        }
       }
+
       await client.query('COMMIT');
-      res.status(201).json({ message: 'Pedidos importados com sucesso!' });
+      res.status(201).json({ message: 'Pedido criado com sucesso!', pedidoId: pedidoId });
     } catch (error) {
       await client.query('ROLLBACK');
       next(error);
     } finally {
-      // ANOTAÇÃO: É crucial liberar o cliente de volta para o pool para evitar
-      // que as conexões se esgotem.
       client.release();
     }
   },
 
+  // --- FUNÇÃO 'getAll' COM A CONSULTA JÁ CORRIGIDA ---
   getAll: async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     const { userId } = req;
 
@@ -98,22 +62,51 @@ export const OrderController = {
 
     try {
       const pedidosResult = await pool.query(
-        `SELECT p.*, r.name as restaurant_name
+        `SELECT
+            p.id,
+            c.nome AS customer_name,
+            p.valor_total AS total,
+            p.status,
+            p.data_pedido AS created_at,
+            u.nome AS restaurant_name,
+            p.motivo_cancelamento,
+            p.data_entrega
          FROM pedidos p
-         JOIN restaurants r ON r.id = p.id_restaurante
-         WHERE r.owner_id = $1
-         ORDER BY p.created_at DESC`,
+         JOIN unidades u ON u.id = p.id_unidade
+         JOIN login l ON l.id_unidade = u.id
+         JOIN clientes c ON c.id = p.id_cliente
+         WHERE l.id = $1
+         ORDER BY p.data_pedido DESC`,
         [userId]
       );
-      const pedidosComItens = await Promise.all(
-        pedidosResult.rows.map(async (pedido: PedidoDB) => {
-          const itensResult = await pool.query(
-            `SELECT id, name, quantity, price FROM pedido_items WHERE pedido_id = $1`,
-            [pedido.id]
-          );
-          return { ...pedido, items: itensResult.rows as PedidoItem[] };
-        })
+
+      const pedidos = pedidosResult.rows;
+
+      if (pedidos.length === 0) {
+        res.status(200).json([]);
+        return;
+      }
+
+      const pedidoIds = pedidos.map(p => p.id);
+      const itensResult = await pool.query(
+        `SELECT
+            ip.id_pedido,
+            pr.nome,
+            ip.quantidade,
+            ip.preco_unitario
+         FROM itens_pedido ip
+         JOIN produtos pr ON pr.id = ip.id_produto
+         WHERE ip.id_pedido = ANY($1::int[])`,
+        [pedidoIds]
       );
+
+      const todosItens = itensResult.rows;
+
+      const pedidosComItens = pedidos.map(pedido => ({
+        ...pedido,
+        items: todosItens.filter(item => item.id_pedido === pedido.id),
+      }));
+
       res.status(200).json(pedidosComItens);
     } catch (error) {
       next(error);
