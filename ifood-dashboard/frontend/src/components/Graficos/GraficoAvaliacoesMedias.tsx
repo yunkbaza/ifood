@@ -3,7 +3,9 @@
 import React from 'react';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 
+// CORREÇÃO: A interface agora espera um número
 interface ChartData {
+  unidade: string;
   media_nota: number;
 }
 
@@ -13,7 +15,7 @@ const AverageRatingsChart = ({ data }: { data: ChartData[] }) => {
   const chartData = [
     {
       name: 'Avaliação',
-      value: averageRating,
+      value: averageRating, // Não precisa mais de parseFloat aqui
       fill: 'var(--chart-orange)',
     },
   ];

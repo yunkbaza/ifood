@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { DollarSign, ShoppingBag, XCircle, CheckCircle } from 'lucide-react';
 
-// Importe as funções da API
 import {
   getMonthlyRevenue,
   getOrdersByStatus,
@@ -13,18 +12,23 @@ import {
   getWeeklyOrders,
 } from '@/api/api';
 
-// Importe os componentes de gráfico
 import RevenueChart from '@/components/Graficos/GraficoFaturamentoMensal';
 import OrdersStatusChart from '@/components/Graficos/GraficoPedidosPorStatus';
 import WeeklyOrdersChart from '@/components/Graficos/GraficoPedidosSemanais';
 import AverageRatingsChart from '@/components/Graficos/GraficoAvaliacoesMedias';
+import GlobalLayout from '@/components/Layout/GlobalLayout';
 
-// --- Interfaces de Tipagem (mantidas) ---
+// Interfaces para os dados que vêm da API (como strings)
 interface MonthlyRevenueData { mes: string; faturamento_total: string; }
 interface OrdersByStatusData { status: string; total: number; }
-interface TopSellingProductsData { nome: string; total_vendido: number; }
-interface WeeklyOrdersData { semana: string; total_pedidos: number; }
-interface AverageRatingsData { unidade: string; media_nota: number; }
+interface TopSellingProductsData { nome: string; total_vendido: string; }
+interface WeeklyOrdersDataAPI { semana: string; total_pedidos: string; }
+interface AverageRatingsDataAPI { unidade: string; media_nota: string; }
+
+// Interfaces para os dados que os gráficos esperam (com números)
+interface WeeklyOrdersChartData { semana: string; total_pedidos: number; }
+interface AverageRatingsChartData { unidade: string; media_nota: number; }
+
 
 // Componente para os cartões de KPI
 const KpiCard = ({ title, value, icon: Icon, colorClass }: { title: string, value: string | number, icon: React.ElementType, colorClass: string }) => (
@@ -42,15 +46,13 @@ const KpiCard = ({ title, value, icon: Icon, colorClass }: { title: string, valu
 const DashboardPage = () => {
   const { user, loading: authLoading } = useAuth();
   
-  // Estados para os dados da API
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenueData[]>([]);
   const [ordersByStatus, setOrdersByStatus] = useState<OrdersByStatusData[]>([]);
   const [topProducts, setTopProducts] = useState<TopSellingProductsData[]>([]);
-  const [avgRatings, setAvgRatings] = useState<AverageRatingsData[]>([]);
-  const [weeklyOrders, setWeeklyOrders] = useState<WeeklyOrdersData[]>([]);
+  const [avgRatings, setAvgRatings] = useState<AverageRatingsChartData[]>([]); // Usa o tipo numérico
+  const [weeklyOrders, setWeeklyOrders] = useState<WeeklyOrdersChartData[]>([]); // Usa o tipo numérico
   const [dataLoading, setDataLoading] = useState(true);
 
-  // Efeito para buscar os dados
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
@@ -59,11 +61,25 @@ const DashboardPage = () => {
         const [revenueRes, statusRes, topProductsRes, ratingsRes, weeklyRes] = await Promise.all([
           getMonthlyRevenue(), getOrdersByStatus(), getTopSellingProducts(), getAverageRatings(), getWeeklyOrders(),
         ]);
+        
         setMonthlyRevenue(revenueRes.data);
         setOrdersByStatus(statusRes.data);
         setTopProducts(topProductsRes.data);
-        setAvgRatings(ratingsRes.data);
-        setWeeklyOrders(weeklyRes.data);
+        
+        // --- CORREÇÃO PRINCIPAL AQUI ---
+        // Converte os dados de string para número antes de salvar no estado
+        const parsedRatings: AverageRatingsChartData[] = (ratingsRes.data as AverageRatingsDataAPI[]).map(item => ({
+            ...item,
+            media_nota: parseFloat(item.media_nota)
+        }));
+        setAvgRatings(parsedRatings);
+
+        const parsedWeekly: WeeklyOrdersChartData[] = (weeklyRes.data as WeeklyOrdersDataAPI[]).map(item => ({
+            ...item,
+            total_pedidos: parseInt(item.total_pedidos, 10)
+        }));
+        setWeeklyOrders(parsedWeekly);
+
       } catch (error) {
         console.error('Erro ao buscar dados do dashboard:', error);
       } finally {
@@ -74,56 +90,52 @@ const DashboardPage = () => {
     if (!authLoading) fetchData();
   }, [user, authLoading]);
 
-  // Se estiver carregando, exibe uma mensagem
   if (authLoading || dataLoading) {
-    return <div className="flex items-center justify-center h-full"><p>Carregando dashboard...</p></div>;
+    return (
+      <GlobalLayout>
+        <div className="flex items-center justify-center h-full"><p>Carregando dashboard...</p></div>
+      </GlobalLayout>
+    );
   }
 
-  // Processamento dos dados para KPIs e Gráficos
   const totalRevenue = monthlyRevenue.reduce((sum, item) => sum + parseFloat(item.faturamento_total), 0);
   const deliveredOrders = ordersByStatus.find(item => item.status === 'Entregue')?.total || 0;
   const cancelledOrders = ordersByStatus.find(item => item.status === 'Cancelado')?.total || 0;
   const totalOrders = ordersByStatus.reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <div className="space-y-6">
-        {/* Seção de KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <KpiCard title="Faturamento Total" value={`R$ ${totalRevenue.toFixed(2)}`} icon={DollarSign} colorClass="bg-green-500" />
-            <KpiCard title="Total de Pedidos" value={totalOrders} icon={ShoppingBag} colorClass="bg-blue-500" />
-            <KpiCard title="Pedidos Entregues" value={deliveredOrders} icon={CheckCircle} colorClass="bg-teal-500" />
-            <KpiCard title="Pedidos Cancelados" value={cancelledOrders} icon={XCircle} colorClass="bg-red-500" />
-        </div>
+    <GlobalLayout>
+      <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KpiCard title="Faturamento Total" value={`R$ ${totalRevenue.toFixed(2)}`} icon={DollarSign} colorClass="bg-green-500" />
+              <KpiCard title="Total de Pedidos" value={totalOrders} icon={ShoppingBag} colorClass="bg-blue-500" />
+              <KpiCard title="Pedidos Entregues" value={deliveredOrders} icon={CheckCircle} colorClass="bg-teal-500" />
+              <KpiCard title="Pedidos Cancelados" value={cancelledOrders} icon={XCircle} colorClass="bg-red-500" />
+          </div>
 
-        {/* Grid principal para os gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Gráfico de Faturamento (ocupa 2 colunas) */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="font-bold text-lg mb-4">Faturamento Mensal</h3>
-                <RevenueChart data={monthlyRevenue} />
-            </div>
-            
-            {/* Gráfico de Pedidos por Status (ocupa 1 coluna) */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="font-bold text-lg mb-4">Pedidos por Status</h3>
-                <OrdersStatusChart data={ordersByStatus} />
-            </div>
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                  <h3 className="font-bold text-lg mb-4">Faturamento Mensal</h3>
+                  <RevenueChart data={monthlyRevenue} />
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <h3 className="font-bold text-lg mb-4">Pedidos por Status</h3>
+                  <OrdersStatusChart data={ordersByStatus} />
+              </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-             {/* Gráfico de Pedidos Semanais (ocupa 2 colunas) */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="font-bold text-lg mb-4">Evolução de Pedidos (Semanal)</h3>
-                <WeeklyOrdersChart data={weeklyOrders} />
-            </div>
-
-            {/* Gráfico de Avaliações Médias (ocupa 1 coluna) */}
-            <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col">
-                <h3 className="font-bold text-lg mb-4">Satisfação do Cliente</h3>
-                <AverageRatingsChart data={avgRatings} />
-            </div>
-        </div>
-    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                  <h3 className="font-bold text-lg mb-4">Evolução de Pedidos (Semanal)</h3>
+                  <WeeklyOrdersChart data={weeklyOrders} />
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col">
+                  <h3 className="font-bold text-lg mb-4">Satisfação do Cliente</h3>
+                  <AverageRatingsChart data={avgRatings} />
+              </div>
+          </div>
+      </div>
+    </GlobalLayout>
   );
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, UserCircle } from 'lucide-react'; // Biblioteca de ícones (instale: npm install lucide-react)
+import { LogOut } from 'lucide-react';
 
 const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuth();

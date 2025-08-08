@@ -4,6 +4,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
+// CORREÇÃO: A interface agora espera um número
 interface ChartData {
   semana: string;
   total_pedidos: number;
@@ -11,9 +12,8 @@ interface ChartData {
 
 const WeeklyOrdersChart = ({ data }: { data: ChartData[] }) => {
   const chartData = data.map(item => ({
-    // Formata a data para "dd/MM"
     name: format(parseISO(item.semana), "dd/MM"),
-    Pedidos: item.total_pedidos,
+    Pedidos: item.total_pedidos, // Não precisa mais de parseInt aqui
   }));
 
   return (
