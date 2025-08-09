@@ -6,7 +6,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { DashboardPage } from '@/app/dashboard/page';
+import DashboardPage from '@/app/dashboard/page';
 import LoginPage  from '@/app/login/page';
 
 export default function Home() {

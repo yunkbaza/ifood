@@ -45,7 +45,7 @@ interface AverageRatingsData {
 }
 
 
-export const DashboardPage = () => {
+export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenueData[]>([]);
@@ -246,4 +246,4 @@ export const DashboardPage = () => {
       </div>
     </GlobalLayout>
   );
-};
+}
