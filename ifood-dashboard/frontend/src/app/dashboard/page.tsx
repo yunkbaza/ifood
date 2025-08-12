@@ -17,6 +17,7 @@ import { GraficoFaturamentoMensal } from '@/components/Graficos/GraficoFaturamen
 import { GraficoPedidosSemanais } from '@/components/Graficos/GraficoPedidosSemanais';
 import { GraficoAvaliacoesMedias } from '@/components/Graficos/GraficoAvaliacoesMedias';
 
+
 // Tipos para as respostas dos novos endpoints
 interface MonthlyRevenueData {
   unidade: string;
