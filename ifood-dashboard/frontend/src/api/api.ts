@@ -1,16 +1,18 @@
 import axios from 'axios';
-import { User, Order, Restaurant } from '../assets/types';
 
-// Cria uma instância do Axios para se conectar com o backend.
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+// 1. Cria uma instância central do Axios
+export const api = axios.create({
+  // CORREÇÃO: Altere a porta para 3000 para corresponder ao seu backend
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
 });
 
-// Adiciona o token de autenticação a cada requisição para proteger as rotas.
+// 2. Interceptor de Requisição: Adiciona o token em cada chamada
 api.interceptors.request.use(
   (config) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    // Pega o token do localStorage
+    const token = localStorage.getItem('token');
     if (token) {
+      // Se o token existir, anexa ao cabeçalho de autorização
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -20,42 +22,33 @@ api.interceptors.request.use(
   }
 );
 
-// Define a interface para os filtros de data.
-interface DateFilter {
-  start_date?: string;
-  end_date?: string;
-}
+// 3. Interceptor de Resposta: Lida com erros de autenticação globalmente
+api.interceptors.response.use(
+  (response) => response, // Se a resposta for OK, não faz nada
+  (error) => {
+    // Se o erro for 401 (Não Autorizado), o token é inválido ou expirou
+    if (error.response && error.response.status === 401) {
+      // Limpa o armazenamento local
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Redireciona o usuário para a tela de login para se autenticar novamente
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
-// Funções para interagir com os endpoints do backend.
-export const loginApi = (email: string, password: string) => {
-  return api.post<{ user: User, token: string }>('/auth/login', { email, password });
-};
+// --- Funções da API ---
+// Agora todas as suas chamadas usarão a instância 'api' e serão autenticadas
 
-// Funções para buscar dados, agora com suporte a filtros de data.
-export const getOrders = (filters: DateFilter = {}) => {
-  return api.get<Order[]>('/orders', { params: filters });
-};
+// Função de Login
+export const loginApi = (email: string, password: string) => api.post('/auth/login', { email, password });
 
-export const getRestaurants = () => {
-  return api.get<Restaurant[]>('/restaurants');
-};
-
-export const getMonthlyRevenue = (filters: DateFilter = {}) => {
-  return api.get('/metrics/monthly-revenue', { params: filters });
-};
-
-export const getTopSellingProducts = (filters: DateFilter = {}) => {
-  return api.get('/metrics/top-selling-products', { params: filters });
-};
-
-export const getAverageRatings = (filters: DateFilter = {}) => {
-  return api.get('/metrics/average-ratings', { params: filters });
-};
-
-export const getOrdersByStatus = (filters: DateFilter = {}) => {
-  return api.get('/metrics/orders-by-status', { params: filters });
-};
-
-export const getWeeklyOrders = (filters: DateFilter = {}) => {
-  return api.get('/metrics/weekly-orders', { params: filters });
-};
+// Funções de Métricas
+export const getMonthlyRevenue = (filters?: { start_date?: string; end_date?: string }) => api.get('/metrics/monthly-revenue', { params: filters });
+export const getOrdersByStatus = (filters?: { start_date?: string; end_date?: string }) => api.get('/metrics/orders-by-status', { params: filters });
+export const getTopSellingProducts = (filters?: { start_date?: string; end_date?: string }) => api.get('/metrics/top-selling-products', { params: filters });
+export const getAverageRatings = (filters?: { start_date?: string; end_date?: string }) => api.get('/metrics/average-ratings', { params: filters });
+export const getWeeklyOrders = (filters?: { start_date?: string; end_date?: string }) => api.get('/metrics/weekly-orders', { params: filters });

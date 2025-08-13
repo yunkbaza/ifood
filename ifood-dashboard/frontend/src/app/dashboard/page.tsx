@@ -8,17 +8,15 @@ import {
   getTopSellingProducts,
   getAverageRatings,
   getWeeklyOrders,
-  getOrders,
 } from '@/api/api';
-import { Order } from '@/assets/types';
 import { GlobalLayout } from '@/components/Layout/GlobalLayout';
+import { MetricCard } from '@/components/Dashboard/MetricCard';
 import { GraficoPedidosPorStatus } from '@/components/Graficos/GraficoPedidosPorStatus';
 import { GraficoFaturamentoMensal } from '@/components/Graficos/GraficoFaturamentoMensal';
 import { GraficoPedidosSemanais } from '@/components/Graficos/GraficoPedidosSemanais';
 import { GraficoAvaliacoesMedias } from '@/components/Graficos/GraficoAvaliacoesMedias';
 
-
-// Tipos para as respostas dos novos endpoints
+// --- Tipos de Dados ---
 interface MonthlyRevenueData {
   unidade: string;
   mes: string;
@@ -45,10 +43,19 @@ interface AverageRatingsData {
   media_nota: number;
 }
 
+// --- Componente de Loading ---
+const LoadingSpinner = () => (
+  <div className="flex flex-col items-center justify-center h-full">
+    <div className="w-16 h-16 border-4 border-ifood-red border-t-transparent rounded-full animate-spin"></div>
+    <p className="mt-4 text-lg text-ifood-gray-400">Carregando dados...</p>
+  </div>
+);
 
+// --- Componente Principal da Página ---
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
+  
+  // --- Estados para os dados da API ---
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenueData[]>([]);
   const [ordersByStatus, setOrdersByStatus] = useState<OrdersByStatusData[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<TopSellingProductsData[]>([]);
@@ -56,28 +63,25 @@ export default function DashboardPage() {
   const [weeklyOrders, setWeeklyOrders] = useState<WeeklyOrdersData[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
-  // Estado para os filtros de data
+  // --- Estados para os filtros de data ---
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Efeito que busca os dados da API sempre que os filtros ou o estado de autenticação mudam
+  // --- Busca os dados da API ---
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
       setDataLoading(true);
-
       const filters = { start_date: startDate, end_date: endDate };
 
       try {
         const [
-          ordersResponse,
           monthlyRevenueResponse,
           ordersByStatusResponse,
           topSellingResponse,
           averageRatingsResponse,
           weeklyOrdersResponse,
         ] = await Promise.all([
-          getOrders(filters),
           getMonthlyRevenue(filters),
           getOrdersByStatus(filters),
           getTopSellingProducts(filters),
@@ -85,13 +89,11 @@ export default function DashboardPage() {
           getWeeklyOrders(filters),
         ]);
 
-        setOrders(ordersResponse.data);
         setMonthlyRevenue(monthlyRevenueResponse.data);
         setOrdersByStatus(ordersByStatusResponse.data);
         setTopSellingProducts(topSellingResponse.data);
         setAverageRatings(averageRatingsResponse.data);
         setWeeklyOrders(weeklyOrdersResponse.data);
-
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       } finally {
@@ -99,152 +101,108 @@ export default function DashboardPage() {
       }
     };
 
-    if (!authLoading) {
+    if (!authLoading && user) {
       fetchData();
     }
   }, [user, authLoading, startDate, endDate]);
 
-
-  if (authLoading || dataLoading) {
-    return (
-      <GlobalLayout>
-        <div className="text-center text-lg text-gray-600 mt-10">Carregando dados...</div>
-      </GlobalLayout>
-    );
-  }
-
-  // Cálculo de KPIs a partir dos dados da API
+  // --- Cálculos de KPIs ---
   const totalRevenue = monthlyRevenue.reduce((sum, item) => sum + parseFloat(item.faturamento_total), 0);
   const deliveredOrders = ordersByStatus.find(item => item.status === 'Entregue')?.total || 0;
   const cancelledOrders = ordersByStatus.find(item => item.status === 'Cancelado')?.total || 0;
   const totalOrders = ordersByStatus.reduce((sum, item) => sum + item.total, 0);
 
-  // Mapeamento dos dados para o formato esperado pelos gráficos
-  const ordersByStatusChartData = ordersByStatus.map(item => ({
-      name: item.status,
-      value: item.total,
-  }));
+  // --- Formatação de dados para os gráficos ---
+  const ordersByStatusChartData = ordersByStatus.map(item => ({ name: item.status, value: item.total }));
+  const revenueByMonthChartData = monthlyRevenue.map(item => ({ name: item.mes, revenue: parseFloat(item.faturamento_total) }));
+  const weeklyOrdersChartData = weeklyOrders.map(item => ({ semana: item.semana, total_pedidos: item.total_pedidos }));
+  const averageRatingsChartData = averageRatings.map(item => ({ unidade: item.unidade, media_nota: item.media_nota }));
 
-  const revenueByMonthChartData = monthlyRevenue.map(item => ({
-      name: item.mes,
-      revenue: parseFloat(item.faturamento_total),
-  }));
-
-  const weeklyOrdersChartData = weeklyOrders.map(item => ({
-      semana: item.semana,
-      total_pedidos: item.total_pedidos,
-  }));
-
-  const averageRatingsChartData = averageRatings.map(item => ({
-      unidade: item.unidade,
-      media_nota: item.media_nota,
-  }));
-
+  // --- Renderização ---
   return (
     <GlobalLayout>
-      {/* Seletor de datas */}
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="flex flex-col">
-          <label htmlFor="startDate" className="text-sm font-medium text-gray-700">Data de Início</label>
-          <input
-            type="date"
-            id="startDate"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="endDate" className="text-sm font-medium text-gray-700">Data de Fim</label>
-          <input
-            type="date"
-            id="endDate"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-        </div>
-      </div>
+      {authLoading || (dataLoading && !monthlyRevenue.length) ? (
+        <LoadingSpinner />
+      ) : (
+        <>
+          {/* Cabeçalho da Página e Filtros */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-ifood-black">Visão Geral</h2>
+              <p className="text-ifood-gray-400 mt-1">Acompanhe o desempenho do seu negócio.</p>
+            </div>
+            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-white border border-ifood-gray-200 rounded-md px-3 py-2 text-sm text-ifood-gray-400 focus:ring-2 focus:ring-ifood-red focus:outline-none"
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-white border border-ifood-gray-200 rounded-md px-3 py-2 text-sm text-ifood-gray-400 focus:ring-2 focus:ring-ifood-red focus:outline-none"
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Cards de KPIs */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold text-gray-500">Faturamento Total</h2>
-          <p className="text-3xl font-bold text-green-600 mt-2">
-            R$ {totalRevenue.toFixed(2)}
-          </p>
-        </div>
+          {/* Grade de Métricas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard
+              variant="primary"
+              title="Faturamento Total"
+              value={totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              icon="money"
+            />
+            <MetricCard title="Total de Pedidos" value={String(totalOrders)} icon="orders" />
+            <MetricCard title="Pedidos Entregues" value={String(deliveredOrders)} icon="delivered" />
+            <MetricCard title="Pedidos Cancelados" value={String(cancelledOrders)} icon="cancelled" />
+          </div>
 
-        {/* Card de Pedidos Totais */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold text-gray-500">Total de Pedidos</h2>
-          <p className="text-3xl font-bold text-gray-600 mt-2">
-            {totalOrders}
-          </p>
-        </div>
+          {/* Grade de Gráficos e Tabela */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            {/* Gráficos */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold text-ifood-black mb-4">Pedidos por Status</h3>
+              <GraficoPedidosPorStatus data={ordersByStatusChartData} />
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold text-ifood-black mb-4">Faturamento Mensal</h3>
+              <GraficoFaturamentoMensal data={revenueByMonthChartData} />
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold text-ifood-black mb-4">Evolução Semanal de Pedidos</h3>
+              <GraficoPedidosSemanais data={weeklyOrdersChartData} />
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold text-ifood-black mb-4">Avaliações Médias por Unidade</h3>
+              <GraficoAvaliacoesMedias data={averageRatingsChartData} />
+            </div>
 
-        {/* Card de Pedidos Entregues */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold text-gray-500">Pedidos Entregues</h2>
-          <p className="text-3xl font-bold text-blue-600 mt-2">
-            {deliveredOrders}
-          </p>
-        </div>
-
-        {/* Card de Pedidos Cancelados */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold text-gray-500">Pedidos Cancelados</h2>
-          <p className="text-3xl font-bold text-red-600 mt-2">
-            {cancelledOrders}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        {/* Gráfico de Pedidos por Status */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Pedidos por Status</h2>
-          <GraficoPedidosPorStatus data={ordersByStatusChartData} />
-        </div>
-
-        {/* Gráfico de Faturamento Mensal */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Faturamento Mensal</h2>
-          <GraficoFaturamentoMensal data={revenueByMonthChartData} />
-        </div>
-
-        {/* Gráfico de Linha de Pedidos por Semana */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Evolução de Pedidos por Semana</h2>
-          <GraficoPedidosSemanais data={weeklyOrdersChartData} />
-        </div>
-
-        {/* Gráfico de Média de Avaliações por Unidade */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Média de Avaliações por Unidade</h2>
-          <GraficoAvaliacoesMedias data={averageRatingsChartData} />
-        </div>
-      </div>
-
-      <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Top 5 Produtos Mais Vendidos</h2>
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Vendido</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {topSellingProducts.map((product, index) => (
-              <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap">{product.nome}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{product.total_vendido}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            {/* Tabela de Top Produtos */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-2xl font-bold text-ifood-black mb-4">Top 5 Produtos Mais Vendidos</h3>
+              <table className="min-w-full divide-y divide-ifood-gray-200">
+                <thead className="bg-ifood-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-ifood-gray-400 uppercase tracking-wider">Produto</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-ifood-gray-400 uppercase tracking-wider">Total Vendido</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-ifood-gray-200">
+                  {topSellingProducts.map((product, index) => (
+                    <tr key={index} className="hover:bg-ifood-gray-100">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-ifood-black">{product.nome}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-ifood-gray-400">{product.total_vendido}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </GlobalLayout>
   );
 }
