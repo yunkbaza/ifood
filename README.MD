@@ -48,12 +48,24 @@ O projeto é composto por dois serviços:
    source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
    pip install -r requirements.txt
    ```
-3. Crie um arquivo `.env` com as variáveis:
+3. Crie um arquivo `.env` com as variáveis (a `SECRET_KEY` é obrigatória):
    ```
    DATABASE_URL=postgresql://usuario:senha@localhost:5432/nomedobanco
    SECRET_KEY=sua_chave_secreta
    ```
+<<<<<<< ours
+   A aplicação não inicia se `SECRET_KEY` não estiver definida.
 4. Execute as migrações necessárias (usando `schema.sql` ou sua ferramenta preferida).
+=======
+4. Execute o script de migração antes de iniciar o servidor. Exemplo:
+   ```bash
+   # PostgreSQL
+   psql "$DATABASE_URL" -f app/schema.sql
+
+   # ou SQLite para testes locais
+   sqlite3 ifood.db < app/schema.sql
+   ```
+>>>>>>> theirs
 5. Inicie o servidor de desenvolvimento:
    ```bash
    uvicorn app.main:app --reload
