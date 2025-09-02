@@ -1,0 +1,6 @@
+flask
+pandas
+pdfkit
+requests
+streamlit
+xlsxwriter

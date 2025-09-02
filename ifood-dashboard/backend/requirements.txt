@@ -3,9 +3,3 @@ uvicorn
 sqlalchemy
 PyJWT
 bcrypt
-flask
-pandas
-xlsxwriter
-pdfkit
-streamlit
-requests

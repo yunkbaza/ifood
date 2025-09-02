@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Date, DateTime, Numeric, ForeignKey
-from sqlalchemy.orm import relationship
 from .database import Base
 
 class Login(Base):
