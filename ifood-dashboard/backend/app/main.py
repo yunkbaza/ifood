@@ -1,12 +1,20 @@
 import os
 from datetime import datetime, timedelta
+import io
+import csv
 import jwt
 import bcrypt
+import httpx
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from . import models
 from .database import SessionLocal, engine
@@ -14,6 +22,10 @@ from .database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +39,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+scheduler = AsyncIOScheduler()
+
+
+async def coletar_dados_ifood():
+    """Tarefa fictícia que demonstraria a coleta de dados do iFood."""
+    async with httpx.AsyncClient() as client:
+        # Este é um placeholder; a integração real do iFood requer credenciais
+        await client.get("https://example.com/ifood")
+
+
+@app.on_event("startup")
+async def schedule_jobs():
+    scheduler.add_job(coletar_dados_ifood, "interval", minutes=30)
+    scheduler.start()
 
 class Token(BaseModel):
     access_token: str
@@ -76,6 +103,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
+@limiter.limit("5/minute")
 @app.post("/auth/login", response_model=Token)
 def login(data: LoginRequest, db: Session = Depends(get_db)):
     user = authenticate_user(db, data.email, data.password)
@@ -98,10 +126,12 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
     return {"id": user.id, "email": user.email, "name": user.name}
 
+@limiter.limit("10/minute")
 @app.get("/lojas")
 def get_lojas(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.Unidade).all()
 
+@limiter.limit("10/minute")
 @app.get("/pedidos")
 def get_pedidos(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.Pedido).all()
@@ -123,3 +153,58 @@ def get_orders_by_status(
 ):
     result = db.execute("SELECT * FROM pedidos_por_status").fetchall()
     return [dict(row) for row in result]
+
+
+<<<<<<< ours
+@limiter.limit("10/minute")
+@app.get("/metricas")
+def get_metricas(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+    return db.query(models.MetricaDiaria).all()
+
+
+@limiter.limit("10/minute")
+@app.get("/relatorios")
+def get_relatorios(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+    result = db.execute(
+        "SELECT id_unidade, SUM(total_faturamento) AS total_faturamento FROM metricas_diarias GROUP BY id_unidade"
+    ).fetchall()
+    return [dict(row) for row in result]
+=======
+@app.get("/pedidos/{pedido_id}")
+def get_pedido(
+    pedido_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    pedido = db.query(models.Pedido).filter(models.Pedido.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
+    return pedido
+
+
+@app.get("/pedidos/{pedido_id}/export")
+def export_pedido(
+    pedido_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    pedido = db.query(models.Pedido).filter(models.Pedido.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "id_cliente", "id_unidade", "data_pedido", "status", "valor_total"])
+    writer.writerow([
+        pedido.id,
+        pedido.id_cliente,
+        pedido.id_unidade,
+        pedido.data_pedido,
+        pedido.status,
+        pedido.valor_total,
+    ])
+
+    response = Response(content=output.getvalue(), media_type="text/csv")
+    response.headers["Content-Disposition"] = f"attachment; filename=pedido_{pedido_id}.csv"
+    return response
+>>>>>>> theirs

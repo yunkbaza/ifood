@@ -34,6 +34,7 @@ O projeto é composto por dois serviços:
 - Gráficos interativos
 - Filtros por intervalo de datas
 - Job de atualização automática das métricas
+- Endpoints protegidos `/metricas` e `/relatorios` com limite de requisições
 
 ---
 
@@ -57,6 +58,10 @@ O projeto é composto por dois serviços:
    ```bash
    uvicorn app.main:app --reload
    ```
+
+#### Documentação da API
+
+Após iniciar o servidor, a documentação interativa estará disponível em `http://localhost:8000/docs` (Swagger) ou `http://localhost:8000/redoc`.
 
 ### Frontend (Next.js)
 1. Acesse `ifood-dashboard/frontend`.

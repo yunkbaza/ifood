@@ -28,3 +28,12 @@ export interface Order {
   restaurant_name: string;
   items: OrderItem[];
 }
+
+export interface Pedido {
+  id: number;
+  id_cliente: number;
+  id_unidade: number;
+  data_pedido: string;
+  status: string;
+  valor_total: number;
+}

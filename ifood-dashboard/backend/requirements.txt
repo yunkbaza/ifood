@@ -3,3 +3,5 @@ uvicorn
 sqlalchemy
 PyJWT
 bcrypt
+pytest
+httpx

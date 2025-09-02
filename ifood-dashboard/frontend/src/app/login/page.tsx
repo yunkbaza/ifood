@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { loginApi } from '@/api/api';
+import { loginApi } from '@/services/auth';
 
 export default function LoginPage() {
   const { login } = useAuth();

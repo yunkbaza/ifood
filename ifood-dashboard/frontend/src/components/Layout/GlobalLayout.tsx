@@ -1,7 +1,9 @@
 // src/components/Layout/GlobalLayout.tsx
+'use client';
 
 import React from 'react';
-import Image from 'next/image'; // 1. Importe o componente Image
+import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
@@ -11,13 +13,12 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-ifood-gray-100 flex flex-col font-sans">
       <header className="bg-ifood-red shadow-md p-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          {/* 2. Use o componente Image para carregar o SVG da pasta public */}
           <Image
-            src="/ifood-logo.svg" // O caminho começa com "/"
+            src="/ifood-logo.svg"
             alt="iFood Logo"
-            width={80}  // Defina a largura
-            height={40} // Defina a altura
-            priority    // Ajuda a carregar o logo mais rápido
+            width={80}
+            height={40}
+            priority
           />
           <div className="border-l border-white/50 h-8"></div>
           <h1 className="text-xl font-semibold text-white tracking-wider">
@@ -25,7 +26,35 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
           </h1>
         </div>
 
-        {/* ... o resto do seu componente ... */}
+<<<<<<< ours
+        {user && (
+          <nav className="flex items-center space-x-4 text-white">
+            <Link href="/dashboard" className="hover:underline">
+              Dashboard
+            </Link>
+            <Link href="/settings" className="hover:underline">
+              Configurações
+            </Link>
+            <button onClick={logout} className="hover:underline">
+              Sair
+            </button>
+          </nav>
+        )}
+=======
+        <nav className="flex items-center space-x-4 text-white">
+          <Link href="/dashboard" className="hover:underline">
+            Dashboard
+          </Link>
+          <Link href="/pedidos" className="hover:underline">
+            Pedidos
+          </Link>
+          {user && (
+            <button onClick={logout} className="hover:underline">
+              Sair
+            </button>
+          )}
+        </nav>
+>>>>>>> theirs
       </header>
       <main className="flex-1 p-6 md:p-8">
         {children}

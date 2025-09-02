@@ -8,13 +8,15 @@ import {
   getTopSellingProducts,
   getAverageRatings,
   getWeeklyOrders,
-} from '@/api/api';
+} from '@/services/metrics';
 import { GlobalLayout } from '@/components/Layout/GlobalLayout';
 import { MetricCard } from '@/components/Dashboard/MetricCard';
 import { GraficoPedidosPorStatus } from '@/components/Graficos/GraficoPedidosPorStatus';
 import { GraficoFaturamentoMensal } from '@/components/Graficos/GraficoFaturamentoMensal';
 import { GraficoPedidosSemanais } from '@/components/Graficos/GraficoPedidosSemanais';
 import { GraficoAvaliacoesMedias } from '@/components/Graficos/GraficoAvaliacoesMedias';
+import { ExportButton } from '@/components/Dashboard/ExportButton';
+import { Alert } from '@/components/Dashboard/Alert';
 
 // --- Tipos de Dados ---
   interface MonthlyRevenueData {
@@ -119,6 +121,7 @@ export default function DashboardPage() {
   const deliveredOrders = ordersByStatus.find(item => item.status === 'Entregue')?.total || 0;
   const cancelledOrders = ordersByStatus.find(item => item.status === 'Cancelado')?.total || 0;
   const totalOrders = ordersByStatus.reduce((sum, item) => sum + item.total, 0);
+  const cancelledRatio = totalOrders ? cancelledOrders / totalOrders : 0;
 
   // --- Formatação de dados para os gráficos ---
   const ordersByStatusChartData = ordersByStatus.map(item => ({ name: item.status, value: item.total }));
@@ -158,6 +161,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {cancelledRatio > 0.3 && (
+            <Alert message="Alto número de pedidos cancelados detectado." />
+          )}
+
           {/* Grade de Métricas */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <MetricCard
@@ -193,7 +200,10 @@ export default function DashboardPage() {
 
             {/* Tabela de Top Produtos */}
             <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-ifood-black mb-4">Top 5 Produtos Mais Vendidos</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold text-ifood-black">Top 5 Produtos Mais Vendidos</h3>
+                <ExportButton data={topSellingProducts} filename="top-produtos.csv" />
+              </div>
               <table className="min-w-full divide-y divide-ifood-gray-200">
                 <thead className="bg-ifood-gray-100">
                   <tr>
