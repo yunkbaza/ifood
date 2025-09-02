@@ -21,7 +21,10 @@ const RegisterPage = () => {
 
     try {
       // A URL da API deve ser a mesma configurada no seu .env
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('NEXT_PUBLIC_API_URL is not defined');
+      }
       await axios.post(`${apiUrl}/auth/register`, { name, email, password });
 
       alert('Cadastro realizado com sucesso! Redirecionando para o login.');

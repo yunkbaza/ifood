@@ -17,11 +17,11 @@ import { GraficoPedidosSemanais } from '@/components/Graficos/GraficoPedidosSema
 import { GraficoAvaliacoesMedias } from '@/components/Graficos/GraficoAvaliacoesMedias';
 
 // --- Tipos de Dados ---
-interface MonthlyRevenueData {
-  unidade: string;
-  mes: string;
-  faturamento_total: string;
-}
+  interface MonthlyRevenueData {
+    unidade: string;
+    mes: string;
+    faturamento_total: number;
+  }
 
 interface OrdersByStatusData {
   status: string;
@@ -89,7 +89,12 @@ export default function DashboardPage() {
           getWeeklyOrders(filters),
         ]);
 
-        setMonthlyRevenue(monthlyRevenueResponse.data);
+        setMonthlyRevenue(
+          monthlyRevenueResponse.data.map((item: MonthlyRevenueData) => ({
+            ...item,
+            faturamento_total: Number(item.faturamento_total),
+          }))
+        );
         setOrdersByStatus(ordersByStatusResponse.data);
         setTopSellingProducts(topSellingResponse.data);
         setAverageRatings(averageRatingsResponse.data);
@@ -107,14 +112,20 @@ export default function DashboardPage() {
   }, [user, authLoading, startDate, endDate]);
 
   // --- Cálculos de KPIs ---
-  const totalRevenue = monthlyRevenue.reduce((sum, item) => sum + parseFloat(item.faturamento_total), 0);
+  const totalRevenue = monthlyRevenue.reduce(
+    (sum, item) => sum + item.faturamento_total,
+    0
+  );
   const deliveredOrders = ordersByStatus.find(item => item.status === 'Entregue')?.total || 0;
   const cancelledOrders = ordersByStatus.find(item => item.status === 'Cancelado')?.total || 0;
   const totalOrders = ordersByStatus.reduce((sum, item) => sum + item.total, 0);
 
   // --- Formatação de dados para os gráficos ---
   const ordersByStatusChartData = ordersByStatus.map(item => ({ name: item.status, value: item.total }));
-  const revenueByMonthChartData = monthlyRevenue.map(item => ({ name: item.mes, revenue: parseFloat(item.faturamento_total) }));
+  const revenueByMonthChartData = monthlyRevenue.map(item => ({
+    name: item.mes,
+    revenue: item.faturamento_total,
+  }));
   const weeklyOrdersChartData = weeklyOrders.map(item => ({ semana: item.semana, total_pedidos: item.total_pedidos }));
   const averageRatingsChartData = averageRatings.map(item => ({ unidade: item.unidade, media_nota: item.media_nota }));
 

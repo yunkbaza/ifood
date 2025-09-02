@@ -1,226 +1,110 @@
 # iFood Dashboard Analítico
 
-Bem-vindo ao iFood Dashboard Analítico, uma ferramenta de visualização de dados desenvolvida para auxiliar gerentes de restaurantes a acompanhar as principais métricas de desempenho de suas operações na plataforma iFood.
+Ferramenta de visualização de dados que auxilia gestores a acompanhar as principais métricas de desempenho no iFood.
 
-O projeto é dividido em dois serviços principais: um **backend** em Node.js (Express) e um **frontend** em Next.js (React), que se comunicam para exibir dados em tempo real e de forma interativa.
+O projeto é composto por dois serviços:
 
----
-
-## 🚀 Tecnologias Utilizadas
-
-### Backend
-
-* **Node.js**: Ambiente de execução JavaScript.
-* **Express**: Framework web para criar a API REST.
-* **TypeScript**: Adiciona tipagem estática para um código mais robusto e fácil de manter.
-* **PostgreSQL**: Banco de dados relacional para armazenamento de dados.
-* **`pg`**: Biblioteca para conexão com o banco de dados PostgreSQL.
-* **`jsonwebtoken`**: Utilizado para autenticação de usuários via JWT.
-* **`bcrypt`**: Para hash seguro de senhas.
-* **`node-cron`**: Gerencia um job periódico para manter as métricas atualizadas.
-
-### Frontend
-
-* **Next.js**: Framework React para renderização do lado do servidor e otimizações de performance.
-* **React**: Biblioteca para construção da interface de usuário.
-* **TypeScript**: Garante a tipagem e a consistência dos componentes.
-* **Tailwind CSS**: Framework de estilização utilitário para um design rápido e moderno.
-* **Recharts**: Biblioteca para renderização de gráficos e visualização de dados.
-* **Axios**: Cliente HTTP para se comunicar com a API do backend.
-
----
-
-## ✨ Funcionalidades
-
-O dashboard oferece as seguintes funcionalidades principais:
-
-* **Autenticação de Usuário**: Sistema de login seguro para acesso ao painel de controle.
-* **Painel de Métricas (Dashboard)**: Exibição de KPIs (Key Performance Indicators) essenciais, como:
-    * Faturamento Total
-    * Total de Pedidos
-    * Pedidos Entregues e Cancelados
-* **Gráficos Interativos**:
-    * `Gráfico de Pedidos por Status`: Mostra a distribuição dos pedidos por status (entregue, cancelado, em andamento).
-    * `Gráfico de Faturamento Mensal`: Exibe a evolução do faturamento ao longo do tempo.
-    * `Gráfico de Pedidos Semanais`: Acompanha a tendência do número de pedidos por semana.
-    * `Gráfico de Avaliações Médias`: Compara a média de notas de cada unidade.
-* **Filtros de Dados**: Permite filtrar todas as métricas por um intervalo de data personalizado.
-* **Job de Atualização Automática**: Um serviço em segundo plano que simula a ingestão e o processamento diário de dados, garantindo que o dashboard esteja sempre atualizado.
-
----
-
-## 🛠️ Configuração e Instalação
-
-Para configurar e executar o projeto, siga os passos abaixo. Certifique-se de ter o Node.js, npm/yarn e o PostgreSQL instalados.
-
-### 1. Backend
-
-1.  Navegue até a pasta `backend`.
-2.  Instale as dependências:
-    ```bash
-    npm install
-    ```
-3.  Crie um arquivo `.env` na pasta `backend` com as seguintes variáveis de ambiente:
-    ```
-    PORT=3333
-    DATABASE_URL="postgres://usuario:senha@localhost:5432/nomedobanco"
-    JWT_SECRET="sua_chave_secreta_jwt"
-    ```
-4.  Substitua os valores de `DATABASE_URL` com as credenciais do seu banco de dados.
-5.  Execute as migrations do banco de dados (assumindo que você tenha um script para isso).
-6.  Inicie o servidor de desenvolvimento:
-    ```bash
-    npm run dev
-    ```
-
-### 2. Frontend
-
-1.  Navegue até a pasta `frontend`.
-2.  Instale as dependências:
-    ```bash
-    npm install
-    ```
-3.  Crie um arquivo `.env.local` na pasta `frontend` com a URL do seu backend:
-    ```
-    NEXT_PUBLIC_API_URL=http://localhost:3333
-    ```
-4.  Inicie o servidor de desenvolvimento:
-    ```bash
-    npm run dev
-    ```
-
-Após seguir esses passos, a aplicação estará disponível em `http://localhost:3000`.
-
----
-
-## 📂 Estrutura do Projeto
-
-O projeto é organizado da seguinte forma:
-
-Com certeza! Um README.md bem formatado é essencial para a clareza e profissionalismo do seu projeto. Vou formatar o conteúdo que geramos usando a sintaxe Markdown para que ele fique com uma aparência limpa e fácil de ler no GitHub.
-
-Aqui está o conteúdo do README.md pronto para ser copiado e colado na pasta raiz do seu projeto.
-
-Markdown
-
-# iFood Dashboard Analítico
-
-Bem-vindo ao iFood Dashboard Analítico, uma ferramenta de visualização de dados desenvolvida para auxiliar gerentes de restaurantes a acompanhar as principais métricas de desempenho de suas operações na plataforma iFood.
-
-O projeto é dividido em dois serviços principais: um **backend** em Node.js (Express) e um **frontend** em Next.js (React), que se comunicam para exibir dados em tempo real e de forma interativa.
+- **Backend** – API em [FastAPI](https://fastapi.tiangolo.com/) (Python).
+- **Frontend** – Aplicação [Next.js](https://nextjs.org/) (React).
 
 ---
 
 ## 🚀 Tecnologias Utilizadas
 
 ### Backend
-
-* **Node.js**: Ambiente de execução JavaScript.
-* **Express**: Framework web para criar a API REST.
-* **TypeScript**: Adiciona tipagem estática para um código mais robusto e fácil de manter.
-* **PostgreSQL**: Banco de dados relacional para armazenamento de dados.
-* **`pg`**: Biblioteca para conexão com o banco de dados PostgreSQL.
-* **`jsonwebtoken`**: Utilizado para autenticação de usuários via JWT.
-* **`bcrypt`**: Para hash seguro de senhas.
-* **`node-cron`**: Gerencia um job periódico para manter as métricas atualizadas.
+- Python
+- FastAPI
+- SQLAlchemy
+- PyJWT
+- PostgreSQL (ou SQLite para testes locais)
 
 ### Frontend
-
-* **Next.js**: Framework React para renderização do lado do servidor e otimizações de performance.
-* **React**: Biblioteca para construção da interface de usuário.
-* **TypeScript**: Garante a tipagem e a consistência dos componentes.
-* **Tailwind CSS**: Framework de estilização utilitário para um design rápido e moderno.
-* **Recharts**: Biblioteca para renderização de gráficos e visualização de dados.
-* **Axios**: Cliente HTTP para se comunicar com a API do backend.
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Recharts
+- Axios
 
 ---
 
 ## ✨ Funcionalidades
-
-O dashboard oferece as seguintes funcionalidades principais:
-
-* **Autenticação de Usuário**: Sistema de login seguro para acesso ao painel de controle.
-* **Painel de Métricas (Dashboard)**: Exibição de KPIs (Key Performance Indicators) essenciais, como:
-    * Faturamento Total
-    * Total de Pedidos
-    * Pedidos Entregues e Cancelados
-* **Gráficos Interativos**:
-    * `Gráfico de Pedidos por Status`: Mostra a distribuição dos pedidos por status (entregue, cancelado, em andamento).
-    * `Gráfico de Faturamento Mensal`: Exibe a evolução do faturamento ao longo do tempo.
-    * `Gráfico de Pedidos Semanais`: Acompanha a tendência do número de pedidos por semana.
-    * `Gráfico de Avaliações Médias`: Compara a média de notas de cada unidade.
-* **Filtros de Dados**: Permite filtrar todas as métricas por um intervalo de data personalizado.
-* **Job de Atualização Automática**: Um serviço em segundo plano que simula a ingestão e o processamento diário de dados, garantindo que o dashboard esteja sempre atualizado.
+- Autenticação de usuário
+- Painel de métricas (faturamento, pedidos, status etc.)
+- Gráficos interativos
+- Filtros por intervalo de datas
+- Job de atualização automática das métricas
 
 ---
 
-## 🛠️ Configuração e Instalação
+## 🛠️ Configuração e Setup
 
-Para configurar e executar o projeto, siga os passos abaixo. Certifique-se de ter o Node.js, npm/yarn e o PostgreSQL instalados.
+### Backend (FastAPI)
+1. Acesse `ifood-dashboard/backend`.
+2. Crie e ative um ambiente virtual e instale as dependências:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+   pip install -r requirements.txt
+   ```
+3. Crie um arquivo `.env` com as variáveis:
+   ```
+   DATABASE_URL=postgresql://usuario:senha@localhost:5432/nomedobanco
+   SECRET_KEY=sua_chave_secreta
+   ```
+4. Execute as migrações necessárias (usando `schema.sql` ou sua ferramenta preferida).
+5. Inicie o servidor de desenvolvimento:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
 
-### 1. Backend
+### Frontend (Next.js)
+1. Acesse `ifood-dashboard/frontend`.
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Configure a URL do backend em `.env.local`:
+   ```
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
+4. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-1.  Navegue até a pasta `backend`.
-2.  Instale as dependências:
-    ```bash
-    npm install
-    ```
-3.  Crie um arquivo `.env` na pasta `backend` com as seguintes variáveis de ambiente:
-    ```
-    PORT=3333
-    DATABASE_URL="postgres://usuario:senha@localhost:5432/nomedobanco"
-    JWT_SECRET="sua_chave_secreta_jwt"
-    ```
-4.  Substitua os valores de `DATABASE_URL` com as credenciais do seu banco de dados.
-5.  Execute as migrations do banco de dados (assumindo que você tenha um script para isso).
-6.  Inicie o servidor de desenvolvimento:
-    ```bash
-    npm run dev
-    ```
-
-### 2. Frontend
-
-1.  Navegue até a pasta `frontend`.
-2.  Instale as dependências:
-    ```bash
-    npm install
-    ```
-3.  Crie um arquivo `.env.local` na pasta `frontend` com a URL do seu backend:
-    ```
-    NEXT_PUBLIC_API_URL=http://localhost:3333
-    ```
-4.  Inicie o servidor de desenvolvimento:
-    ```bash
-    npm run dev
-    ```
-
-Após seguir esses passos, a aplicação estará disponível em `http://localhost:3000`.
+A aplicação estará disponível em `http://localhost:3000`.
 
 ---
 
 ## 📂 Estrutura do Projeto
 
-O projeto é organizado da seguinte forma:
-
+```
 ifood-dashboard/
 ├── backend/
-│   ├── src/
-│   │   ├── controllers/         # Lógica dos endpoints da API
-│   │   ├── jobs/                # Tarefas agendadas (job de atualização)
-│   │   ├── middlewares/         # Middlewares (autenticação)
-│   │   ├── routes/              # Definição das rotas da API
-│   │   └── utils/               # Funções utilitárias
-│   └── .env                     # Variáveis de ambiente
-├── frontend/
-│   ├── public/                  # Arquivos estáticos
-│   ├── src/
-│   │   ├── api/                 # Funções para chamadas à API
-│   │   ├── assets/              # Tipos de dados
-│   │   ├── components/
-│   │   │   ├── Graficos/        # Componentes de gráficos
-│   │   │   └── Layout/          # Componentes de layout
-│   │   ├── context/             # Gerenciamento de estado (autenticação)
-│   │   ├── pages/               # Páginas do projeto
-│   │   └── app/                 # Arquivos de roteamento Next.js
-│   └── .env.local               # Variáveis de ambiente
-└── README.md
+│   ├── app/
+│   │   ├── main.py          # Ponto de entrada da API FastAPI
+│   │   ├── database.py      # Conexão e sessão com o banco
+│   │   ├── models.py        # Definições ORM
+│   │   └── schema.sql       # Script de criação do banco
+│   └── requirements.txt
+└── frontend/
+    ├── public/              # Arquivos estáticos
+    ├── src/
+    │   ├── api/             # Comunicação com o backend
+    │   ├── assets/          # Tipos e dados estáticos
+    │   ├── components/      # Componentes reutilizáveis
+    │   │   ├── Dashboard/
+    │   │   ├── Graficos/
+    │   │   └── Layout/
+    │   ├── context/         # Gerenciamento de estado
+    │   └── app/             # Rotas da aplicação
+    └── package.json
+```
+
+---
+
+## 📄 Licença
+
+Este projeto é distribuído sob a licença MIT.
+

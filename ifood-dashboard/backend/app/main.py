@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 import jwt
+import bcrypt
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
@@ -35,6 +36,12 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    id_unidade: int | None = None
+
 def get_db():
     db = SessionLocal()
     try:
@@ -44,7 +51,9 @@ def get_db():
 
 def authenticate_user(db: Session, email: str, password: str):
     user = db.query(models.Login).filter(models.Login.email == email).first()
-    if not user or user.password_hash != password:
+    if not user:
+        return None
+    if not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
         return None
     return user
 
@@ -75,6 +84,20 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     access_token = create_access_token({"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+@app.post("/auth/register")
+def register(data: RegisterRequest, db: Session = Depends(get_db)):
+    hashed_password = bcrypt.hashpw(data.password.encode(), bcrypt.gensalt()).decode()
+    user = models.Login(
+        name=data.name,
+        email=data.email,
+        password_hash=hashed_password,
+        id_unidade=data.id_unidade,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"id": user.id, "email": user.email, "name": user.name}
+
 @app.get("/lojas")
 def get_lojas(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.Unidade).all()
@@ -83,11 +106,20 @@ def get_lojas(db: Session = Depends(get_db), current_user: models.Login = Depend
 def get_pedidos(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.Pedido).all()
 
-@app.get("/metricas")
-def get_metricas(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
-    return db.query(models.MetricaDiaria).all()
 
-@app.get("/relatorios")
-def get_relatorios(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+@app.get("/metrics/monthly-revenue")
+def get_monthly_revenue(
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
     result = db.execute("SELECT * FROM faturamento_mensal_unidades").fetchall()
+    return [dict(row) for row in result]
+
+
+@app.get("/metrics/orders-by-status")
+def get_orders_by_status(
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    result = db.execute("SELECT * FROM pedidos_por_status").fetchall()
     return [dict(row) for row in result]

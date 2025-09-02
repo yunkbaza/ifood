@@ -1,8 +1,6 @@
 'use client'; // Indica que este é um componente do lado do cliente
 // frontend/src/app/page.tsx
 
-'use client';
-
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -34,6 +32,5 @@ export default function Home() {
 
   // Renderiza a página de Login se não houver usuário
   return <LoginPage />;
-  return null; // Retorna null enquanto aguarda o redirecionamento
 };
 

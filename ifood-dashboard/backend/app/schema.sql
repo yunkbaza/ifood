@@ -98,7 +98,7 @@ ALTER TABLE login ADD COLUMN id_unidade INTEGER REFERENCES unidades(id);
 SELECT id, nome FROM unidades;
 
 INSERT INTO login (name, email, password_hash, id_unidade) VALUES
-('Allan', 'allan@ifood.com.br', '081205', 1);
+('Allan', 'allan@ifood.com.br', '$2b$12$PLaihNwBkSfTvOy4KEylLOe5VDK5kNL.jHIJEbsIg4aL7r3jWByde', 1);
 
 -- #################################################
 -- #           3. INSERÇÃO DE DADOS                #
