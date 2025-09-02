@@ -5,7 +5,7 @@ import csv
 import jwt
 import bcrypt
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import Response
@@ -105,7 +105,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 @limiter.limit("5/minute")
 @app.post("/auth/login", response_model=Token)
-def login(data: LoginRequest, db: Session = Depends(get_db)):
+def login(request: Request, data: LoginRequest, db: Session = Depends(get_db)):
     user = authenticate_user(db, data.email, data.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
@@ -128,12 +128,12 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
 
 @limiter.limit("10/minute")
 @app.get("/lojas")
-def get_lojas(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+def get_lojas(request: Request, db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.Unidade).all()
 
 @limiter.limit("10/minute")
 @app.get("/pedidos")
-def get_pedidos(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+def get_pedidos(request: Request, db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.Pedido).all()
 
 
@@ -155,23 +155,23 @@ def get_orders_by_status(
     return [dict(row) for row in result]
 
 
-<<<<<<< ours
 @limiter.limit("10/minute")
 @app.get("/metricas")
-def get_metricas(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+def get_metricas(request: Request, db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     return db.query(models.MetricaDiaria).all()
 
 
 @limiter.limit("10/minute")
 @app.get("/relatorios")
-def get_relatorios(db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
+def get_relatorios(request: Request, db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
     result = db.execute(
         "SELECT id_unidade, SUM(total_faturamento) AS total_faturamento FROM metricas_diarias GROUP BY id_unidade"
     ).fetchall()
     return [dict(row) for row in result]
-=======
+@limiter.limit("10/minute")
 @app.get("/pedidos/{pedido_id}")
 def get_pedido(
+    request: Request,
     pedido_id: int,
     db: Session = Depends(get_db),
     current_user: models.Login = Depends(get_current_user),
@@ -182,8 +182,10 @@ def get_pedido(
     return pedido
 
 
+@limiter.limit("10/minute")
 @app.get("/pedidos/{pedido_id}/export")
 def export_pedido(
+    request: Request,
     pedido_id: int,
     db: Session = Depends(get_db),
     current_user: models.Login = Depends(get_current_user),
@@ -207,4 +209,3 @@ def export_pedido(
     response = Response(content=output.getvalue(), media_type="text/csv")
     response.headers["Content-Disposition"] = f"attachment; filename=pedido_{pedido_id}.csv"
     return response
->>>>>>> theirs

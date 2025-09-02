@@ -5,3 +5,5 @@ PyJWT
 bcrypt
 pytest
 httpx
+apscheduler
+slowapi
