@@ -54,9 +54,9 @@ O projeto é composto por dois serviços:
    SECRET_KEY=sua_chave_secreta
    ```
 <<<<<<< ours
-   A aplicação não inicia se `SECRET_KEY` não estiver definida.
-4. Execute as migrações necessárias (usando `schema.sql` ou sua ferramenta preferida).
 =======
+   A aplicação usa uma `SECRET_KEY` padrão apenas para desenvolvimento.
+>>>>>>> theirs
 4. Execute o script de migração antes de iniciar o servidor. Exemplo:
    ```bash
    # PostgreSQL
@@ -65,7 +65,6 @@ O projeto é composto por dois serviços:
    # ou SQLite para testes locais
    sqlite3 ifood.db < app/schema.sql
    ```
->>>>>>> theirs
 5. Inicie o servidor de desenvolvimento:
    ```bash
    uvicorn app.main:app --reload

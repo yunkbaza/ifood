@@ -6,9 +6,6 @@ export const getMonthlyRevenue = (params?: { start_date?: string; end_date?: str
 export const getOrdersByStatus = (params?: { start_date?: string; end_date?: string }) =>
   api.get('/metrics/orders-by-status', { params });
 
-export const getTopSellingProducts = (params?: { start_date?: string; end_date?: string }) =>
-  api.get('/metrics/top-selling-products', { params });
-
 export const getAverageRatings = (params?: { start_date?: string; end_date?: string }) =>
   api.get('/metrics/average-ratings', { params });
 

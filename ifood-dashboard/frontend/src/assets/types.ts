@@ -36,4 +36,5 @@ export interface Pedido {
   data_pedido: string;
   status: string;
   valor_total: number;
-}
+  }
+

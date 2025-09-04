@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import {
   getMonthlyRevenue,
   getOrdersByStatus,
-  getTopSellingProducts,
   getAverageRatings,
   getWeeklyOrders,
 } from '@/services/metrics';
@@ -15,7 +14,6 @@ import { GraficoPedidosPorStatus } from '@/components/Graficos/GraficoPedidosPor
 import { GraficoFaturamentoMensal } from '@/components/Graficos/GraficoFaturamentoMensal';
 import { GraficoPedidosSemanais } from '@/components/Graficos/GraficoPedidosSemanais';
 import { GraficoAvaliacoesMedias } from '@/components/Graficos/GraficoAvaliacoesMedias';
-import { ExportButton } from '@/components/Dashboard/ExportButton';
 import { Alert } from '@/components/Dashboard/Alert';
 
 // --- Tipos de Dados ---
@@ -28,11 +26,6 @@ import { Alert } from '@/components/Dashboard/Alert';
 interface OrdersByStatusData {
   status: string;
   total: number;
-}
-
-interface TopSellingProductsData {
-  nome: string;
-  total_vendido: number;
 }
 
 interface WeeklyOrdersData {
@@ -60,7 +53,6 @@ export default function DashboardPage() {
   // --- Estados para os dados da API ---
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenueData[]>([]);
   const [ordersByStatus, setOrdersByStatus] = useState<OrdersByStatusData[]>([]);
-  const [topSellingProducts, setTopSellingProducts] = useState<TopSellingProductsData[]>([]);
   const [averageRatings, setAverageRatings] = useState<AverageRatingsData[]>([]);
   const [weeklyOrders, setWeeklyOrders] = useState<WeeklyOrdersData[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -80,13 +72,11 @@ export default function DashboardPage() {
         const [
           monthlyRevenueResponse,
           ordersByStatusResponse,
-          topSellingResponse,
           averageRatingsResponse,
           weeklyOrdersResponse,
         ] = await Promise.all([
           getMonthlyRevenue(filters),
           getOrdersByStatus(filters),
-          getTopSellingProducts(filters),
           getAverageRatings(filters),
           getWeeklyOrders(filters),
         ]);
@@ -98,7 +88,6 @@ export default function DashboardPage() {
           }))
         );
         setOrdersByStatus(ordersByStatusResponse.data);
-        setTopSellingProducts(topSellingResponse.data);
         setAverageRatings(averageRatingsResponse.data);
         setWeeklyOrders(weeklyOrdersResponse.data);
       } catch (error) {
@@ -196,30 +185,6 @@ export default function DashboardPage() {
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-xl font-bold text-ifood-black mb-4">Avaliações Médias por Unidade</h3>
               <GraficoAvaliacoesMedias data={averageRatingsChartData} />
-            </div>
-
-            {/* Tabela de Top Produtos */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-2xl font-bold text-ifood-black">Top 5 Produtos Mais Vendidos</h3>
-                <ExportButton data={topSellingProducts} filename="top-produtos.csv" />
-              </div>
-              <table className="min-w-full divide-y divide-ifood-gray-200">
-                <thead className="bg-ifood-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-ifood-gray-400 uppercase tracking-wider">Produto</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-ifood-gray-400 uppercase tracking-wider">Total Vendido</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-ifood-gray-200">
-                  {topSellingProducts.map((product, index) => (
-                    <tr key={index} className="hover:bg-ifood-gray-100">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-ifood-black">{product.nome}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-ifood-gray-400">{product.total_vendido}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         </>

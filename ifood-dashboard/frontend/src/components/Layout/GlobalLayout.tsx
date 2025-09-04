@@ -27,10 +27,14 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
 <<<<<<< ours
+<<<<<<< ours
         {user && (
           <nav className="flex items-center space-x-4 text-white">
             <Link href="/dashboard" className="hover:underline">
               Dashboard
+            </Link>
+            <Link href="/pedidos" className="hover:underline">
+              Pedidos
             </Link>
             <Link href="/settings" className="hover:underline">
               Configurações
@@ -40,6 +44,8 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
             </button>
           </nav>
         )}
+      </header>
+=======
 =======
         <nav className="flex items-center space-x-4 text-white">
           <Link href="/dashboard" className="hover:underline">
@@ -48,14 +54,30 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
           <Link href="/pedidos" className="hover:underline">
             Pedidos
           </Link>
-          {user && (
-            <button onClick={logout} className="hover:underline">
-              Sair
-            </button>
-          )}
-        </nav>
+          <Link href="/settings" className="hover:underline">
+            Configurações
+          </Link>
 >>>>>>> theirs
+          {user && (
+            <nav className="flex items-center space-x-4 text-white">
+              <Link href="/dashboard" className="hover:underline">
+                Dashboard
+              </Link>
+              <Link href="/pedidos" className="hover:underline">
+                Pedidos
+              </Link>
+              <button onClick={logout} className="hover:underline">
+                Sair
+              </button>
+            </nav>
+          )}
+<<<<<<< ours
+        </header>
+>>>>>>> theirs
+=======
+        </nav>
       </header>
+>>>>>>> theirs
       <main className="flex-1 p-6 md:p-8">
         {children}
       </main>

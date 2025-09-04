@@ -85,8 +85,8 @@ const RegisterPage = () => {
         >
           {loading ? 'Cadastrando...' : 'Cadastrar'}
         </button>
-      </form>
-    </div>
+    </form>
+  </div>
   );
 };
 

@@ -1,5 +1,8 @@
+import os
 import sys
 from pathlib import Path
+
+os.environ.setdefault("SECRET_KEY", "test")
 
 import pytest
 from fastapi.testclient import TestClient

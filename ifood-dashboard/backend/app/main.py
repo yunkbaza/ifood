@@ -12,6 +12,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -35,9 +36,7 @@ app.add_middleware(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY environment variable is not set")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -160,6 +159,127 @@ def get_orders_by_status(
     current_user: models.Login = Depends(get_current_user),
 ):
     result = db.execute("SELECT * FROM pedidos_por_status").fetchall()
+    return [dict(row) for row in result]
+
+
+<<<<<<< ours
+@app.get("/metrics/average-ratings")
+def get_average_ratings(
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    result = db.execute(
+        """
+        SELECT u.nome AS unidade, AVG(m.media_nota) AS media_nota
+        FROM metricas_diarias m
+        JOIN unidades u ON m.id_unidade = u.id
+        GROUP BY u.nome
+        """
+    ).fetchall()
+=======
+@app.get("/metrics/top-selling-products")
+def get_top_selling_products(
+    start_date: str | None = None,
+    end_date: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    conditions = ["p.status = 'Entregue'"]
+    params: dict[str, str] = {}
+    if start_date:
+        conditions.append("p.data_pedido >= :start_date")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("p.data_pedido <= :end_date")
+        params["end_date"] = end_date
+    where_clause = " AND ".join(conditions)
+    query = f"""
+        SELECT pr.nome, SUM(ip.quantidade) AS total_vendido
+        FROM itens_pedido ip
+        JOIN produtos pr ON pr.id = ip.id_produto
+        JOIN pedidos p ON p.id = ip.id_pedido
+        WHERE {where_clause}
+        GROUP BY pr.nome
+        ORDER BY total_vendido DESC
+        LIMIT 5
+    """
+    result = db.execute(text(query), params).fetchall()
+    return [dict(row) for row in result]
+
+
+@app.get("/metrics/average-ratings")
+def get_average_ratings(
+    start_date: str | None = None,
+    end_date: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    conditions: list[str] = []
+    params: dict[str, str] = {}
+    if start_date:
+        conditions.append("p.data_pedido >= :start_date")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("p.data_pedido <= :end_date")
+        params["end_date"] = end_date
+    where_clause = " AND ".join(conditions)
+    if where_clause:
+        where_clause = "WHERE " + where_clause
+    query = f"""
+        SELECT u.nome AS unidade, AVG(f.nota) AS media_nota
+        FROM feedbacks f
+        JOIN pedidos p ON p.id = f.id_pedido
+        JOIN unidades u ON u.id = p.id_unidade
+        {where_clause}
+        GROUP BY u.nome
+        ORDER BY u.nome
+    """
+    result = db.execute(text(query), params).fetchall()
+>>>>>>> theirs
+    return [dict(row) for row in result]
+
+
+@app.get("/metrics/weekly-orders")
+def get_weekly_orders(
+<<<<<<< ours
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    result = db.execute(
+        """
+        SELECT strftime('%Y-%W', data_referencia) AS semana, SUM(total_pedidos) AS total_pedidos
+        FROM metricas_diarias
+        GROUP BY strftime('%Y-%W', data_referencia)
+        ORDER BY semana
+        """
+    ).fetchall()
+=======
+    start_date: str | None = None,
+    end_date: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    conditions: list[str] = []
+    params: dict[str, str] = {}
+    if start_date:
+        conditions.append("p.data_pedido >= :start_date")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("p.data_pedido <= :end_date")
+        params["end_date"] = end_date
+    where_clause = " AND ".join(conditions)
+    if where_clause:
+        where_clause = "WHERE " + where_clause
+    query = f"""
+        SELECT to_char(date_trunc('week', p.data_pedido), 'IYYY-IW') AS semana,
+               COUNT(*) AS total_pedidos
+        FROM pedidos p
+        {where_clause}
+        GROUP BY semana
+        ORDER BY semana
+    """
+    result = db.execute(text(query), params).fetchall()
+>>>>>>> theirs
     return [dict(row) for row in result]
 
 
