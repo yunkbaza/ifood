@@ -26,27 +26,6 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
           </h1>
         </div>
 
-<<<<<<< ours
-<<<<<<< ours
-        {user && (
-          <nav className="flex items-center space-x-4 text-white">
-            <Link href="/dashboard" className="hover:underline">
-              Dashboard
-            </Link>
-            <Link href="/pedidos" className="hover:underline">
-              Pedidos
-            </Link>
-            <Link href="/settings" className="hover:underline">
-              Configurações
-            </Link>
-            <button onClick={logout} className="hover:underline">
-              Sair
-            </button>
-          </nav>
-        )}
-      </header>
-=======
-=======
         <nav className="flex items-center space-x-4 text-white">
           <Link href="/dashboard" className="hover:underline">
             Dashboard
@@ -57,27 +36,13 @@ export const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
           <Link href="/settings" className="hover:underline">
             Configurações
           </Link>
->>>>>>> theirs
           {user && (
-            <nav className="flex items-center space-x-4 text-white">
-              <Link href="/dashboard" className="hover:underline">
-                Dashboard
-              </Link>
-              <Link href="/pedidos" className="hover:underline">
-                Pedidos
-              </Link>
-              <button onClick={logout} className="hover:underline">
-                Sair
-              </button>
-            </nav>
+            <button onClick={logout} className="hover:underline">
+              Sair
+            </button>
           )}
-<<<<<<< ours
-        </header>
->>>>>>> theirs
-=======
         </nav>
       </header>
->>>>>>> theirs
       <main className="flex-1 p-6 md:p-8">
         {children}
       </main>

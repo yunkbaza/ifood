@@ -162,21 +162,6 @@ def get_orders_by_status(
     return [dict(row) for row in result]
 
 
-<<<<<<< ours
-@app.get("/metrics/average-ratings")
-def get_average_ratings(
-    db: Session = Depends(get_db),
-    current_user: models.Login = Depends(get_current_user),
-):
-    result = db.execute(
-        """
-        SELECT u.nome AS unidade, AVG(m.media_nota) AS media_nota
-        FROM metricas_diarias m
-        JOIN unidades u ON m.id_unidade = u.id
-        GROUP BY u.nome
-        """
-    ).fetchall()
-=======
 @app.get("/metrics/top-selling-products")
 def get_top_selling_products(
     start_date: str | None = None,
@@ -235,25 +220,11 @@ def get_average_ratings(
         ORDER BY u.nome
     """
     result = db.execute(text(query), params).fetchall()
->>>>>>> theirs
     return [dict(row) for row in result]
 
 
 @app.get("/metrics/weekly-orders")
 def get_weekly_orders(
-<<<<<<< ours
-    db: Session = Depends(get_db),
-    current_user: models.Login = Depends(get_current_user),
-):
-    result = db.execute(
-        """
-        SELECT strftime('%Y-%W', data_referencia) AS semana, SUM(total_pedidos) AS total_pedidos
-        FROM metricas_diarias
-        GROUP BY strftime('%Y-%W', data_referencia)
-        ORDER BY semana
-        """
-    ).fetchall()
-=======
     start_date: str | None = None,
     end_date: str | None = None,
     db: Session = Depends(get_db),
@@ -279,61 +250,4 @@ def get_weekly_orders(
         ORDER BY semana
     """
     result = db.execute(text(query), params).fetchall()
->>>>>>> theirs
     return [dict(row) for row in result]
-
-
-@limiter.limit("10/minute")
-@app.get("/metricas")
-def get_metricas(request: Request, db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
-    return db.query(models.MetricaDiaria).all()
-
-
-@limiter.limit("10/minute")
-@app.get("/relatorios")
-def get_relatorios(request: Request, db: Session = Depends(get_db), current_user: models.Login = Depends(get_current_user)):
-    result = db.execute(
-        "SELECT id_unidade, SUM(total_faturamento) AS total_faturamento FROM metricas_diarias GROUP BY id_unidade"
-    ).fetchall()
-    return [dict(row) for row in result]
-@limiter.limit("10/minute")
-@app.get("/pedidos/{pedido_id}")
-def get_pedido(
-    request: Request,
-    pedido_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.Login = Depends(get_current_user),
-):
-    pedido = db.query(models.Pedido).filter(models.Pedido.id == pedido_id).first()
-    if not pedido:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
-    return pedido
-
-
-@limiter.limit("10/minute")
-@app.get("/pedidos/{pedido_id}/export")
-def export_pedido(
-    request: Request,
-    pedido_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.Login = Depends(get_current_user),
-):
-    pedido = db.query(models.Pedido).filter(models.Pedido.id == pedido_id).first()
-    if not pedido:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["id", "id_cliente", "id_unidade", "data_pedido", "status", "valor_total"])
-    writer.writerow([
-        pedido.id,
-        pedido.id_cliente,
-        pedido.id_unidade,
-        pedido.data_pedido,
-        pedido.status,
-        pedido.valor_total,
-    ])
-
-    response = Response(content=output.getvalue(), media_type="text/csv")
-    response.headers["Content-Disposition"] = f"attachment; filename=pedido_{pedido_id}.csv"
-    return response
