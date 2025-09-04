@@ -149,8 +149,8 @@ def get_monthly_revenue(
     db: Session = Depends(get_db),
     current_user: models.Login = Depends(get_current_user),
 ):
-    result = db.execute("SELECT * FROM faturamento_mensal_unidades").fetchall()
-    return [dict(row) for row in result]
+    result = db.execute(text("SELECT * FROM faturamento_mensal_unidades")).fetchall()
+    return [dict(row._mapping) for row in result]
 
 
 @app.get("/metrics/orders-by-status")
@@ -158,8 +158,8 @@ def get_orders_by_status(
     db: Session = Depends(get_db),
     current_user: models.Login = Depends(get_current_user),
 ):
-    result = db.execute("SELECT * FROM pedidos_por_status").fetchall()
-    return [dict(row) for row in result]
+    result = db.execute(text("SELECT * FROM pedidos_por_status")).fetchall()
+    return [dict(row._mapping) for row in result]
 
 
 @app.get("/metrics/top-selling-products")
@@ -189,7 +189,7 @@ def get_top_selling_products(
         LIMIT 5
     """
     result = db.execute(text(query), params).fetchall()
-    return [dict(row) for row in result]
+    return [dict(row._mapping) for row in result]
 
 
 @app.get("/metrics/average-ratings")
@@ -220,7 +220,7 @@ def get_average_ratings(
         ORDER BY u.nome
     """
     result = db.execute(text(query), params).fetchall()
-    return [dict(row) for row in result]
+    return [dict(row._mapping) for row in result]
 
 
 @app.get("/metrics/weekly-orders")

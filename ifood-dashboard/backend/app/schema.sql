@@ -1,26 +1,25 @@
 -- #################################################
 -- #           1. LIMPEZA DO BANCO DE DADOS        #
 -- #################################################
--- Remove todas as views e tabelas existentes para uma implementaÃƒÂ§ÃƒÂ£o limpa.
--- A ordem ÃƒÂ© importante para evitar erros de dependÃƒÂªncia (tabelas com chaves estrangeiras).
 
--- Remove todas as views existentes.
+-- Remove views se existirem
 DROP VIEW IF EXISTS faturamento_mensal_unidades, pedidos_por_status, motivos_cancelamento;
 
--- Remove todas as tabelas. O uso de CASCADE garante que dependÃƒÂªncias (chaves estrangeiras) tambÃƒÂ©m sejam removidas.
+-- Remove tabelas (ordem e CASCADE para garantir remoção de FKs)
 DROP TABLE IF EXISTS feedbacks, itens_pedido, pedidos, metricas_diarias, produtos, regioes_entrega, clientes, unidades, login CASCADE;
 
 -- #################################################
--- #           2. CRIAÃƒâ€¡ÃƒÆ’O DAS TABELAS              #
+-- #           2. CRIAÇÃO DAS TABELAS               #
 -- #################################################
--- A modelagem de dados original foi mantida.
 
 CREATE TABLE unidades (
   id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
+  nome VARCHAR(100) NOT NULL UNIQUE,
   cidade VARCHAR(100),
   estado VARCHAR(2),
-  data_abertura DATE
+  data_abertura DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE clientes (
@@ -53,7 +52,12 @@ CREATE TABLE pedidos (
   status VARCHAR(50) CHECK (status IN ('Entregue', 'Cancelado', 'Em andamento', 'Saiu para entrega')),
   valor_total DECIMAL(10,2),
   motivo_cancelamento TEXT,
-  data_entrega TIMESTAMP
+  origem_cancelamento VARCHAR(255),
+  data_aceite TIMESTAMP,
+  data_saida_entrega TIMESTAMP,
+  data_entrega TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE itens_pedido (
@@ -69,7 +73,7 @@ CREATE TABLE feedbacks (
   id_pedido INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
   nota INTEGER CHECK (nota BETWEEN 1 AND 5),
   comentario TEXT,
-  tipo_feedback VARCHAR(50) CHECK (tipo_feedback IN ('Elogio', 'ReclamaÃƒÂ§ÃƒÂ£o', 'SugestÃƒÂ£o'))
+  tipo_feedback VARCHAR(50) CHECK (tipo_feedback IN ('Elogio', 'Reclamação', 'Sugestão'))
 );
 
 CREATE TABLE metricas_diarias (
@@ -82,6 +86,7 @@ CREATE TABLE metricas_diarias (
     media_nota DECIMAL(3, 2) DEFAULT 0.00,
     media_tempo_entrega INTERVAL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (id_unidade, data_referencia)
 );
 
@@ -91,35 +96,36 @@ CREATE TABLE login(
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     id_unidade INTEGER REFERENCES unidades(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    role VARCHAR(50) DEFAULT 'user',
+    last_login TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-SELECT id, nome FROM unidades;
-
-INSERT INTO login (name, email, password_hash, id_unidade) VALUES
-('Allan', 'allan@ifood.com.br', '$2b$12$PLaihNwBkSfTvOy4KEylLOe5VDK5kNL.jHIJEbsIg4aL7r3jWByde', 1);
-
 -- #################################################
--- #           3. INSERÃƒâ€¡ÃƒÆ’O DE DADOS                #
+-- #           3. INSERÇÃO DE DADOS                 #
 -- #################################################
 
--- Comandos INSERT originais
 INSERT INTO unidades (nome, cidade, estado, data_abertura) VALUES
-('iFood CangaÃƒÂ­ba', 'SÃƒÂ£o Paulo', 'SP', '2022-03-10'),
-('iFood Morumbi', 'SÃƒÂ£o Paulo', 'SP', '2021-11-22'),
+('iFood Cangaíba', 'São Paulo', 'SP', '2022-03-10'),
+('iFood Morumbi', 'São Paulo', 'SP', '2021-11-22'),
 ('iFood Bangu', 'Rio de Janeiro', 'RJ', '2023-01-17'),
 ('iFood Campinas', 'Campinas', 'SP', '2020-06-01'),
 ('iFood Mineiro', 'Belo Horizonte', 'MG', '2021-08-25'),
-('iFood Pinheiros', 'SÃƒÂ£o Paulo', 'SP', '2022-01-10'),
-('iFood Moema', 'SÃƒÂ£o Paulo', 'SP', '2021-08-15'),
+('iFood Pinheiros', 'São Paulo', 'SP', '2022-01-10'),
+('iFood Moema', 'São Paulo', 'SP', '2021-08-15'),
 ('iFood Centro', 'Rio de Janeiro', 'RJ', '2023-03-20'),
 ('iFood Savassi', 'Belo Horizonte', 'MG', '2022-06-05'),
 ('iFood Aldeota', 'Fortaleza', 'CE', '2023-01-12'),
-('iFood Express SÃƒÂ£o Paulo', 'SÃƒÂ£o Paulo', 'SP', '2022-03-15'),
+('iFood Express São Paulo', 'São Paulo', 'SP', '2022-03-15'),
 ('iFood Prime Campinas', 'Campinas', 'SP', '2023-01-10'),
 ('iFood Gourmet Salvador', 'Salvador', 'BA', '2021-07-23'),
 ('iFood Fast Curitiba', 'Curitiba', 'PR', '2022-11-05'),
 ('iFood Premium Recife', 'Recife', 'PE', '2020-08-17');
+
+-- Usuário padrão após inserir unidades (evita violação de FK)
+INSERT INTO login (name, email, password_hash, id_unidade)
+VALUES ('Allan', 'allan@ifood.com.br', '$2b$12$PLaihNwBkSfTvOy4KEylLOe5VDK5kNL.jHIJEbsIg4aL7r3jWByde', 1);
 
 INSERT INTO clientes (nome, email, telefone) VALUES
 ('Eduardo Pires', 'eduardo.pires@gmail.com', '(11) 92345-1234'),
@@ -130,27 +136,27 @@ INSERT INTO clientes (nome, email, telefone) VALUES
 ('Aline Menezes', 'aline.menezes@gmail.com', '(11) 99988-4455'),
 ('Tiago Souza', 'tiago.souza@bol.com.br', '(11) 91123-3322'),
 ('Juliana Dias', 'juliana.dias@gmail.com', '(21) 93456-7711'),
-('JoÃƒÂ£o Silva', 'joao@email.com', '(11) 99999-9999'),
+('João Silva', 'joao@email.com', '(11) 99999-9999'),
 ('Maria Oliveira', 'maria@email.com', '(21) 98888-8888'),
 ('Carlos Souza', 'carlos@email.com', '3197777-7777'),
 ('Ana Lima', 'ana@email.com', '(85) 96666-6666'),
 ('Bruna Rocha', 'bruna@email.com', '(11) 95555-5555');
 
 INSERT INTO regioes_entrega (bairro, cidade, estado) VALUES
-('Centro', 'SÃƒÂ£o Paulo', 'SP'),
+('Centro', 'São Paulo', 'SP'),
 ('Copacabana', 'Rio de Janeiro', 'RJ'),
 ('Savassi', 'Belo Horizonte', 'MG'),
-('Jardins', 'SÃƒÂ£o Paulo', 'SP'),
+('Jardins', 'São Paulo', 'SP'),
 ('Botafogo', 'Rio de Janeiro', 'RJ'),
 ('Barro Preto', 'Belo Horizonte', 'MG'),
-('Pinheiros', 'SÃƒÂ£o Paulo', 'SP'),
+('Pinheiros', 'São Paulo', 'SP'),
 ('Bangu', 'Rio de Janeiro', 'RJ'),
 ('Mineiro', 'Belo Horizonte', 'MG'),
 ('Aldeota', 'Fortaleza', 'CE'),
-('Moema', 'SÃƒÂ£o Paulo', 'SP');
+('Moema', 'São Paulo', 'SP');
 
 INSERT INTO produtos (nome, preco, categoria) VALUES
-('HambÃƒÂºrguer Artesanal', 25.00, 'Lanches'),
+('Hambúrguer Artesanal', 25.00, 'Lanches'),
 ('Pizza Margherita', 38.50, 'Pizzas'),
 ('Refrigerante Lata', 6.00, 'Bebidas'),
 ('Suco Natural', 9.50, 'Bebidas'),
@@ -162,11 +168,11 @@ INSERT INTO produtos (nome, preco, categoria) VALUES
 -- Dados de exemplo para os pedidos
 INSERT INTO pedidos (id_cliente, id_unidade, id_regiao_entrega, data_pedido, status, valor_total, motivo_cancelamento) VALUES
 (1, 1, 1, '2024-06-01 12:34:56', 'Entregue', 50.00, NULL),
-(2, 2, 2, '2024-06-02 18:22:33', 'Cancelado', 30.00, 'Cliente nÃƒÂ£o atendeu'),
+(2, 2, 2, '2024-06-02 18:22:33', 'Cancelado', 30.00, 'Cliente não atendeu'),
 (3, 1, 4, '2024-06-03 20:15:10', 'Entregue', 45.00, NULL),
 (4, 3, 3, '2024-06-04 13:00:00', 'Saiu para entrega', 60.00, NULL),
 (5, 4, 6, '2024-06-05 21:10:05', 'Em andamento', 25.00, NULL),
-(6, 1, 1, '2024-06-06 19:45:20', 'Cancelado', 80.00, 'EndereÃƒÂ§o incorreto'),
+(6, 1, 1, '2024-06-06 19:45:20', 'Cancelado', 80.00, 'Endereço incorreto'),
 (7, 2, 5, '2024-06-07 22:30:00', 'Entregue', 40.00, NULL),
 (8, 5, 3, '2024-06-08 11:20:45', 'Entregue', 22.00, NULL);
 
@@ -188,10 +194,42 @@ INSERT INTO itens_pedido (id_pedido, id_produto, quantidade, preco_unitario) VAL
 
 -- Dados de exemplo para feedbacks
 INSERT INTO feedbacks (id_pedido, nota, comentario, tipo_feedback) VALUES
-(1, 5, 'Entrega rÃƒÂ¡pida e tudo quentinho!', 'Elogio'),
-(3, 4, 'Comida boa, mas poderia vir mais quente', 'SugestÃƒÂ£o'),
-(7, 3, 'Demorou mais do que o previsto', 'ReclamaÃƒÂ§ÃƒÂ£o'),
+(1, 5, 'Entrega rápida e tudo quentinho!', 'Elogio'),
+(3, 4, 'Comida boa, mas poderia vir mais quente', 'Sugestão'),
+(7, 3, 'Demorou mais do que o previsto', 'Reclamação'),
 (8, 5, 'Excelente como sempre!', 'Elogio'),
-(4, 4, 'Acompanhamento delicioso, entrega um pouco atrasada', 'SugestÃƒÂ£o');
+(4, 4, 'Acompanhamento delicioso, entrega um pouco atrasada', 'Sugestão');
 
 -- #################################################
+-- #           4. CRIAÇÃO DAS VIEWS                #
+-- #################################################
+
+-- Faturamento mensal por unidade (apenas pedidos entregues)
+CREATE OR REPLACE VIEW faturamento_mensal_unidades AS
+SELECT
+    u.id                               AS id_unidade,
+    u.nome                             AS unidade,
+    date_trunc('month', p.data_pedido) AS mes,
+    SUM(p.valor_total)                 AS total_faturamento
+FROM pedidos p
+JOIN unidades u ON u.id = p.id_unidade
+WHERE p.status = 'Entregue'
+GROUP BY u.id, u.nome, date_trunc('month', p.data_pedido);
+
+-- Quantidade de pedidos por status
+CREATE OR REPLACE VIEW pedidos_por_status AS
+SELECT
+    status,
+    COUNT(*) AS total
+FROM pedidos
+GROUP BY status;
+
+-- Motivos de cancelamento (quantitativo)
+CREATE OR REPLACE VIEW motivos_cancelamento AS
+SELECT
+    COALESCE(motivo_cancelamento, 'Sem motivo') AS motivo,
+    COUNT(*) AS total
+FROM pedidos
+WHERE status = 'Cancelado'
+GROUP BY COALESCE(motivo_cancelamento, 'Sem motivo');
+
