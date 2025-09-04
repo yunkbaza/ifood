@@ -8,7 +8,7 @@
 DROP VIEW IF EXISTS faturamento_mensal_unidades, pedidos_por_status, motivos_cancelamento;
 
 -- Remove todas as tabelas. O uso de CASCADE garante que dependÃƒÂªncias (chaves estrangeiras) tambÃƒÂ©m sejam removidas.
-DROP TABLE IF EXISTS feedbacks, itens_pedido, pedidos, metricas_diarias, produtos, regioes_entrega, clientes, unidades CASCADE;
+DROP TABLE IF EXISTS feedbacks, itens_pedido, pedidos, metricas_diarias, produtos, regioes_entrega, clientes, unidades, login CASCADE;
 
 -- #################################################
 -- #           2. CRIAÃƒâ€¡ÃƒÆ’O DAS TABELAS              #
@@ -27,7 +27,7 @@ CREATE TABLE clientes (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(100),
   email VARCHAR(100),
-  telefone VARCHAR(20)
+  telefone VARCHAR(30)
 );
 
 CREATE TABLE regioes_entrega (
@@ -69,7 +69,7 @@ CREATE TABLE feedbacks (
   id_pedido INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
   nota INTEGER CHECK (nota BETWEEN 1 AND 5),
   comentario TEXT,
-  tipo_feedback VARCHAR(20) CHECK (tipo_feedback IN ('Elogio', 'ReclamaÃƒÂ§ÃƒÂ£o', 'SugestÃƒÂ£o'))
+  tipo_feedback VARCHAR(50) CHECK (tipo_feedback IN ('Elogio', 'ReclamaÃƒÂ§ÃƒÂ£o', 'SugestÃƒÂ£o'))
 );
 
 CREATE TABLE metricas_diarias (
@@ -90,10 +90,9 @@ CREATE TABLE login(
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    id_unidade INTEGER REFERENCES unidades(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
-ALTER TABLE login ADD COLUMN id_unidade INTEGER REFERENCES unidades(id);
 SELECT id, nome FROM unidades;
 
 INSERT INTO login (name, email, password_hash, id_unidade) VALUES
