@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { GlobalLayout } from '@/components/Layout/GlobalLayout';
 import { getMonthlyRevenue, getOrdersByStatus, getAverageRatings } from '@/services/metrics';
 import { getTopProductsRevenue, getDailyRevenue, getCancellationCost } from '@/services/insights';
@@ -37,6 +38,7 @@ export default function MensalPage() {
   const [cancelCost, setCancelCost] = useState<number>(0);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
@@ -81,6 +83,7 @@ export default function MensalPage() {
         setTopRevenue(top.data || []);
         setDaily(dr.data || []);
         setCancelCost(Number(cc.data?.custo_cancelamento ?? 0));
+        setLastUpdated(new Date().toLocaleString('pt-BR'));
       })
       .catch(() => setError('Falha ao carregar métricas.'))
       .finally(() => setLoading(false));
@@ -140,16 +143,22 @@ export default function MensalPage() {
           <div>
             <h1 className="text-2xl font-bold">Dashboard Mensal (Estratégico)</h1>
             <p className="text-sm text-accent-gray">Selecione um mês para analisar.</p>
+            {lastUpdated && (
+              <p className="text-xs text-accent-gray mt-1">Dados atualizados em {lastUpdated}</p>
+            )}
           </div>
-          <select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
-          >
-            {months.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3">
+            <select
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              className="bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm"
+            >
+              {months.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <Link href="/insights" className="text-accent-cyan text-sm underline">Ver insights</Link>
+          </div>
         </div>
 
         {/* KPIs */}
