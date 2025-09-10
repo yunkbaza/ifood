@@ -4,3 +4,7 @@ __pycache__/
 *.db
 *.sqlite
 *.log
+
+node_modules/
+.env.local
+/package-lock.json
