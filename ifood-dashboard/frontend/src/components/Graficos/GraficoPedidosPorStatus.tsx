@@ -19,7 +19,7 @@ const COLORS = {
 
 export const GraficoPedidosPorStatus = ({ data }: { data: ChartData[] }) => {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={320}>
       <PieChart>
         <Pie
           data={data}
@@ -27,8 +27,9 @@ export const GraficoPedidosPorStatus = ({ data }: { data: ChartData[] }) => {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={80}
-          fill="#8884d8"
+          outerRadius={110}
+          innerRadius={50}
+          fill="#EA1D2C"
           label
         >
           {data.map((entry, index) => (

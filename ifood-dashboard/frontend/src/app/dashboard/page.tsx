@@ -82,9 +82,10 @@ export default function DashboardPage() {
         ]);
 
         setMonthlyRevenue(
-          monthlyRevenueResponse.data.map((item: MonthlyRevenueData) => ({
+          monthlyRevenueResponse.data.map((item: any) => ({
             ...item,
-            faturamento_total: Number(item.faturamento_total),
+            // backend pode retornar total_faturamento; normaliza para faturamento_total
+            faturamento_total: Number(item.faturamento_total ?? item.total_faturamento ?? 0),
           }))
         );
         setOrdersByStatus(ordersByStatusResponse.data);

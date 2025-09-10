@@ -10,15 +10,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Adicione estas cores
+        // iFood palette + dark dashboard accents
         'ifood-red': '#EA1D2C',
         'ifood-black': '#333333',
         'ifood-gray': {
-          100: '#F7F7F7', // Fundo principal
-          200: '#E2E2E2', // Bordas e divisores
-          300: '#A6A6A6', // Texto secundário
-          400: '#717171', // Texto principal
+          100: '#F7F7F7',
+          200: '#E2E2E2',
+          300: '#A6A6A6',
+          400: '#717171',
         },
+        // Accents inspired by the Streamlit design you shared
+        'accent-cyan': '#4CC9F0',
+        'accent-pink': '#F72585',
+        'accent-green': '#2DC653',
+        'accent-yellow': '#FFB703',
+        'accent-red': '#E63946',
+        'accent-gray': '#8D99AE',
       },
     },
   },

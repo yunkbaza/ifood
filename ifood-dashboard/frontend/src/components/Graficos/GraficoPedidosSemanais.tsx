@@ -19,21 +19,16 @@ interface ChartData {
 
 export const GraficoPedidosSemanais = ({ data }: { data: ChartData[] }) => {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={320}>
       <LineChart
         data={data}
-        margin={{
-          top: 5,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
+        margin={{ top: 10, right: 24, left: 0, bottom: 0 }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
         <XAxis dataKey="semana" />
         <YAxis />
         <Tooltip />
-        <Line type="monotone" dataKey="total_pedidos" stroke="#8884d8" activeDot={{ r: 8 }} />
+        <Line type="monotone" dataKey="total_pedidos" stroke="#EA1D2C" strokeWidth={2.5} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>
   );

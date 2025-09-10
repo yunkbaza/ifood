@@ -11,13 +11,13 @@ interface ChartData {
 
 export const GraficoFaturamentoMensal = ({ data }: { data: ChartData[] }) => {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={320}>
       <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
         <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
-        <Bar dataKey="revenue" fill="#8884d8" />
+        <Bar dataKey="revenue" fill="#EA1D2C" barSize={32} radius={[6,6,0,0]} />
       </BarChart>
     </ResponsiveContainer>
   );

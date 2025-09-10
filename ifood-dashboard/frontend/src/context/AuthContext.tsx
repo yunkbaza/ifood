@@ -44,7 +44,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('user', JSON.stringify(userData));
     }
     setUser(userData);
-    router.push('/dashboard');
+    // Alinha com a navegação do layout dark (Mensal)
+    router.push('/mensal');
   };
 
   // Função de logout: limpa tudo e redireciona

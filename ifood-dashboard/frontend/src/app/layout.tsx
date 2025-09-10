@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-slate-900 text-slate-100`}>
         {/* O AuthProvider envolve toda a aplicação para gerenciar o estado do usuário */}
         <AuthProvider>{children}</AuthProvider>
       </body>

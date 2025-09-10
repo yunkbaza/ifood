@@ -20,21 +20,16 @@ interface ChartData {
 
 export const GraficoAvaliacoesMedias = ({ data }: { data: ChartData[] }) => {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={320}>
       <BarChart
         data={data}
-        margin={{
-          top: 20,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
+        margin={{ top: 10, right: 24, left: 0, bottom: 0 }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
         <XAxis dataKey="unidade" />
-        <YAxis />
+        <YAxis domain={[0, 5]} />
         <Tooltip />
-        <Bar dataKey="media_nota" fill="#8884d8" />
+        <Bar dataKey="media_nota" fill="#22C55E" barSize={28} radius={[6,6,0,0]} />
       </BarChart>
     </ResponsiveContainer>
   );
