@@ -53,17 +53,14 @@ O projeto é composto por dois serviços:
    DATABASE_URL=postgresql://usuario:senha@localhost:5432/nomedobanco
    SECRET_KEY=sua_chave_secreta
    ```
-<<<<<<< ours
-=======
    A aplicação usa uma `SECRET_KEY` padrão apenas para desenvolvimento.
->>>>>>> theirs
-4. Execute o script de migração antes de iniciar o servidor. Exemplo:
+4. Execute os scripts SQL antes de iniciar o servidor:
    ```bash
    # PostgreSQL
-   psql "$DATABASE_URL" -f app/schema.sql
+   DATABASE_URL=postgresql://usuario:senha@localhost:5432/nomedobanco ../db/setup_db.sh
 
    # ou SQLite para testes locais
-   sqlite3 ifood.db < app/schema.sql
+   sqlite3 ../ifood.db < app/schema.sql
    ```
 5. Inicie o servidor de desenvolvimento:
    ```bash
