@@ -40,6 +40,18 @@ export default function MensalPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
+  const genLastNMonths = (n: number) => {
+    const out: string[] = [];
+    const now = new Date();
+    for (let i = 0; i < n; i++) {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      out.push(`${y}-${m}`);
+    }
+    return out.reverse();
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -52,9 +64,11 @@ export default function MensalPage() {
           faturamento_total: Number(x.faturamento_total ?? 0),
         }));
         setMr(data);
-        const monthsUnique = Array.from(new Set(data.map((x) => fmtMonth(x.mes)))).sort();
-        setMonths(monthsUnique);
-        setSelected(monthsUnique[monthsUnique.length - 1] ?? '');
+        const fromApi = Array.from(new Set(data.map((x) => fmtMonth(x.mes))));
+        const last12 = genLastNMonths(12);
+        const union = Array.from(new Set([...fromApi, ...last12])).sort();
+        setMonths(union);
+        setSelected(union[union.length - 1] ?? '');
       } catch (e: any) {
         setError('Falha ao conectar ao backend. Verifique se o servidor está em http://localhost:8000 e se você está logado.');
       } finally {
@@ -157,7 +171,7 @@ export default function MensalPage() {
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
-            <Link href="/insights" className="text-accent-cyan text-sm underline">Ver insights</Link>
+            <Link href={`/insights?mes=${selected}`} className="text-accent-cyan text-sm underline">Ver insights</Link>
           </div>
         </div>
 

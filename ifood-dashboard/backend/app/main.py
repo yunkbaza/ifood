@@ -20,6 +20,23 @@ from slowapi.util import get_remote_address
 from . import models
 from .database import SessionLocal, fetch_all
 
+
+def _fix_mojibake(s: str) -> str:
+    """Best-effort fix for common UTF-8/Latin-1 mojibake.
+
+    If text contains sequences like 'Ãº' (typical when UTF-8 bytes were
+    misread as Latin-1), try to recover by re-encoding.
+    Kept narrow in scope and only applied where needed.
+    """
+    if not isinstance(s, str):
+        return s
+    if "Ã" in s or "�" in s:
+        try:
+            return s.encode("latin-1").decode("utf-8")
+        except Exception:
+            return s
+    return s
+
 app = FastAPI()
 
 limiter = Limiter(key_func=get_remote_address)
@@ -192,15 +209,18 @@ def get_monthly_revenue(
     db: Session = Depends(get_db),
     current_user: models.Login = Depends(get_current_user),
 ):
-    rows = fetch_all(db, "SELECT unidade, mes, total_faturamento FROM faturamento_mensal_unidades")
+    # Tenta lidar com views que usam 'total_faturamento' (padrão) ou 'faturamento_total'
+    try:
+        rows = fetch_all(db, "SELECT unidade, mes, total_faturamento FROM faturamento_mensal_unidades")
+    except Exception:
+        rows = fetch_all(db, "SELECT unidade, mes, faturamento_total AS total_faturamento FROM faturamento_mensal_unidades")
     out = []
     for m in rows:
         out.append(
             {
-                "unidade": m["unidade"],
-                "mes": m["mes"],
-                # normaliza o nome esperado pelo frontend
-                "faturamento_total": float(m["total_faturamento"]) if m["total_faturamento"] is not None else 0.0,
+                "unidade": m.get("unidade"),
+                "mes": m.get("mes"),
+                "faturamento_total": float(m.get("total_faturamento") or 0.0),
             }
         )
     return out
@@ -356,7 +376,12 @@ def get_top_products_revenue(
         ORDER BY receita DESC
         LIMIT :limit
     """
-    return fetch_all(db, query, params)
+    rows = fetch_all(db, query, params)
+    # Corrige nomes com acentuações quebradas (ex.: "HambÃºrguer")
+    for r in rows:
+        if "produto" in r:
+            r["produto"] = _fix_mojibake(r["produto"])
+    return rows
 
 
 @app.get("/metrics/daily-revenue")
@@ -554,3 +579,132 @@ def get_daily_cancellations_by_hour(
         ORDER BY hora, motivo
     """
     return fetch_all(db, sql, params)
+
+
+# ---------------------------
+# Insights específicos
+# ---------------------------
+
+@app.get("/insights/top-cancelled-products")
+def get_top_cancelled_products(
+    start_date: str | None = None,
+    end_date: str | None = None,
+    limit: int = 5,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    """Retorna produtos mais envolvidos em pedidos cancelados.
+
+    - Considera a soma das quantidades canceladas e o valor potencial perdido
+      (quantidade * preço unitário) por produto.
+    """
+    conditions = ["p.status = 'Cancelado'"]
+    params: dict[str, object] = {"limit": limit}
+    unit_id = _user_unit_id(current_user)
+    if unit_id is not None:
+        conditions.append("p.id_unidade = :unit_id")
+        params["unit_id"] = unit_id
+    if start_date:
+        conditions.append("p.data_pedido >= :start_date")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("p.data_pedido <= :end_date")
+        params["end_date"] = end_date
+    where_clause = " AND ".join(conditions)
+    query = f"""
+        SELECT pr.nome AS produto,
+               SUM(ip.quantidade) AS qtd_cancelada,
+               SUM(ip.quantidade * ip.preco_unitario) AS perda_total
+        FROM itens_pedido ip
+        JOIN produtos pr ON pr.id = ip.id_produto
+        JOIN pedidos p   ON p.id = ip.id_pedido
+        WHERE {where_clause}
+        GROUP BY pr.nome
+        ORDER BY qtd_cancelada DESC, perda_total DESC
+        LIMIT :limit
+    """
+    rows = fetch_all(db, query, params)
+    for r in rows:
+        if "produto" in r:
+            r["produto"] = _fix_mojibake(r["produto"])
+    return rows
+
+
+@app.get("/insights/orders-heatmap")
+def get_orders_heatmap(
+    start_date: str | None = None,
+    end_date: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    """Mapa de calor de pedidos por dia da semana (0-dom) e hora (0-23)."""
+    conditions: list[str] = []
+    params: dict[str, object] = {}
+    unit_id = _user_unit_id(current_user)
+    if unit_id is not None:
+        conditions.append("p.id_unidade = :unit_id")
+        params["unit_id"] = unit_id
+    if start_date:
+        conditions.append("p.data_pedido >= :start_date")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("p.data_pedido <= :end_date")
+        params["end_date"] = end_date
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    # dow: 0=Sunday em PostgreSQL
+    query = f"""
+        SELECT EXTRACT(DOW FROM p.data_pedido) AS dow,
+               EXTRACT(HOUR FROM p.data_pedido) AS hora,
+               COUNT(*) AS qtd
+        FROM pedidos p
+        {where_clause}
+        GROUP BY EXTRACT(DOW FROM p.data_pedido), EXTRACT(HOUR FROM p.data_pedido)
+        ORDER BY dow, hora
+    """
+    return fetch_all(db, query, params)
+
+
+@app.get("/insights/negative-feedbacks")
+def get_negative_feedbacks(
+    start_date: str | None = None,
+    end_date: str | None = None,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: models.Login = Depends(get_current_user),
+):
+    """Lista feedbacks negativos (nota <= 2 ou tipo 'Reclamação')."""
+    conditions = ["(f.nota <= 2 OR LOWER(f.tipo_feedback) = LOWER('Reclamação') OR f.tipo_feedback ILIKE 'Reclam%')"]
+    params: dict[str, object] = {"limit": limit}
+    unit_id = _user_unit_id(current_user)
+    if unit_id is not None:
+        conditions.append("p.id_unidade = :unit_id")
+        params["unit_id"] = unit_id
+    if start_date:
+        conditions.append("p.data_pedido >= :start_date")
+        params["start_date"] = start_date
+    if end_date:
+        conditions.append("p.data_pedido <= :end_date")
+        params["end_date"] = end_date
+    where_clause = " AND ".join(conditions)
+    query = f"""
+        SELECT f.id,
+               f.nota,
+               f.tipo_feedback,
+               COALESCE(f.comentario, '') AS comentario,
+               p.id AS id_pedido,
+               p.data_pedido,
+               COALESCE(p.motivo_cancelamento, '') AS motivo_cancelamento
+        FROM feedbacks f
+        JOIN pedidos p ON p.id = f.id_pedido
+        WHERE {where_clause}
+        ORDER BY f.nota ASC, p.data_pedido DESC
+        LIMIT :limit
+    """
+    rows = fetch_all(db, query, params)
+    # Corrige mojibake em comentarios/motivos quando aplicável
+    for r in rows:
+        if "comentario" in r:
+            r["comentario"] = _fix_mojibake(r["comentario"]) or ""
+        if "motivo_cancelamento" in r:
+            r["motivo_cancelamento"] = _fix_mojibake(r["motivo_cancelamento"]) or ""
+    return rows
