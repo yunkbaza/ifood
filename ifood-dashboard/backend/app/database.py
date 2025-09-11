@@ -1,7 +1,11 @@
 import os
+from dotenv import load_dotenv
 from typing import Any, Dict, Iterable, List, Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
+
+# Carrega variáveis do .env (para execuções fora do Docker Compose)
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ifood.db")
 
